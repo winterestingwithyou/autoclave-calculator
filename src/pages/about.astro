@@ -6,105 +6,258 @@ const description = 'Tentang Growtopia Autoclave Calculator. Tool gratis untuk m
 ---
 
 <Layout title={title} description={description}>
-	<div class="max-w-2xl mx-auto">
+	<div class="max-w-2xl mx-auto px-4">
 		<!-- Page Header -->
-		<h1 class="text-2xl md:text-3xl font-bold text-amber-400 mb-6">
-			📖 Tentang Project Ini
-		</h1>
+		<div class="text-center mb-10">
+			<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm mb-4">
+				<span>📖</span>
+				<span>About</span>
+			</div>
+			<h1 class="text-3xl md:text-4xl font-bold text-white">
+				Tentang <span class="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Project Ini</span>
+			</h1>
+		</div>
 
 		<!-- About Content -->
-		<div class="space-y-6 text-gray-300">
-			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-				<h2 class="text-lg font-bold text-white mb-3">Apa itu Autoclave Calculator?</h2>
-				<p class="text-gray-400">
-					Growtopia Autoclave Calculator adalah tool gratis untuk membantu pemain Growtopia 
-					menghitung hasil konversi surgical tools melalui mesin Autoclave. 
-					Tool ini membantu Anda mengetahui apakah melakukan autoclave akan menguntungkan 
-					atau merugikan berdasarkan harga pasar saat ini.
-				</p>
-			</section>
-
-			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-				<h2 class="text-lg font-bold text-white mb-3">Cara Kerja Autoclave</h2>
-				<ul class="text-gray-400 space-y-2 list-disc list-inside">
-					<li><strong>20 tools yang sama</strong> akan dikonversi menjadi <strong>1 dari setiap tool lain</strong></li>
-					<li>Ada 13 jenis surgical tools, jadi setiap autoclave menghasilkan 12 tools baru</li>
-					<li>Sisa tools yang kurang dari 20 tidak akan diproses</li>
-					<li>40 tools = 2× autoclave = 24 tools baru</li>
-				</ul>
-			</section>
-
-			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-				<h2 class="text-lg font-bold text-white mb-3">Fitur</h2>
-				<ul class="text-gray-400 space-y-2">
-					<li class="flex items-start gap-2">
-						<span class="text-green-400">✓</span>
-						<span>Kalkulasi hasil autoclave yang akurat</span>
-					</li>
-					<li class="flex items-start gap-2">
-						<span class="text-green-400">✓</span>
-						<span>Perbandingan nilai WL sebelum dan sesudah</span>
-					</li>
-					<li class="flex items-start gap-2">
-						<span class="text-green-400">✓</span>
-						<span>Data tersimpan di browser (IndexedDB)</span>
-					</li>
-					<li class="flex items-start gap-2">
-						<span class="text-green-400">✓</span>
-						<span>Tidak perlu login atau registrasi</span>
-					</li>
-					<li class="flex items-start gap-2">
-						<span class="text-green-400">✓</span>
-						<span>100% gratis tanpa iklan</span>
-					</li>
-				</ul>
-			</section>
-
-			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-				<h2 class="text-lg font-bold text-white mb-3">Privasi</h2>
-				<p class="text-gray-400">
-					Semua data (jumlah tools dan harga) disimpan <strong>hanya di browser Anda</strong> 
-					menggunakan IndexedDB. Tidak ada data yang dikirim ke server manapun. 
-					Kami tidak menggunakan cookies, analytics, atau tracker apapun.
-				</p>
-			</section>
-
-			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-				<h2 class="text-lg font-bold text-white mb-3">Daftar 13 Surgical Tools</h2>
-				<div class="grid grid-cols-2 gap-2 text-sm text-gray-400">
-					<div>• Surgical Sponge</div>
-					<div>• Surgical Splint</div>
-					<div>• Surgical Antiseptic</div>
-					<div>• Surgical Antibiotics</div>
-					<div>• Surgical Anesthetic</div>
-					<div>• Surgical Scalpel</div>
-					<div>• Surgical Stitches</div>
-					<div>• Surgical Lab Kit</div>
-					<div>• Surgical Clamp</div>
-					<div>• Surgical Pins</div>
-					<div>• Surgical Transfusion</div>
-					<div>• Surgical Ultrasound</div>
-					<div>• Surgical Defibrillator</div>
+		<div class="space-y-5">
+			<!-- What is it -->
+			<section class="group relative overflow-hidden rounded-2xl bg-neutral-900/50 border border-neutral-800 p-5 hover:border-amber-500/20 transition-colors">
+				<div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+				<div class="relative">
+					<div class="flex items-center gap-3 mb-3">
+						<span class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-xl">🔬</span>
+						<h2 class="text-lg font-semibold text-white">Apa itu Autoclave Calculator?</h2>
+					</div>
+					<p class="text-neutral-400 text-sm leading-relaxed">
+						Growtopia Autoclave Calculator adalah tool gratis untuk membantu pemain Growtopia 
+						menghitung hasil konversi surgical tools melalui mesin Autoclave. 
+						Tool ini membantu Anda mengetahui apakah melakukan autoclave akan menguntungkan 
+						atau merugikan berdasarkan harga pasar saat ini.
+					</p>
 				</div>
 			</section>
 
-			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-				<h2 class="text-lg font-bold text-white mb-3">Disclaimer</h2>
-				<p class="text-gray-400 text-sm">
-					Project ini tidak berafiliasi dengan Ubisoft atau Growtopia. 
-					"Growtopia" adalah merek dagang dari Ubisoft. 
-					Tool ini dibuat oleh komunitas untuk membantu sesama pemain.
-				</p>
+			<!-- How It Works -->
+			<section class="group relative overflow-hidden rounded-2xl bg-neutral-900/50 border border-neutral-800 p-5 hover:border-blue-500/20 transition-colors">
+				<div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+				<div class="relative">
+					<div class="flex items-center gap-3 mb-3">
+						<span class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl">⚙️</span>
+						<h2 class="text-lg font-semibold text-white">Cara Kerja Autoclave</h2>
+					</div>
+					<ul class="text-neutral-400 text-sm space-y-2">
+						<li class="flex items-start gap-2">
+							<span class="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs mt-0.5">1</span>
+							<span><strong class="text-white">20 tools yang sama</strong> dikonversi menjadi <strong class="text-white">1 dari setiap tool lain</strong></span>
+						</li>
+						<li class="flex items-start gap-2">
+							<span class="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs mt-0.5">2</span>
+							<span>Ada 13 jenis surgical tools, jadi setiap autoclave menghasilkan <strong class="text-white">12 tools baru</strong></span>
+						</li>
+						<li class="flex items-start gap-2">
+							<span class="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs mt-0.5">3</span>
+							<span>Sisa tools yang kurang dari 20 tidak akan diproses</span>
+						</li>
+						<li class="flex items-start gap-2">
+							<span class="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs mt-0.5">4</span>
+							<span>Contoh: 40 tools = 2× autoclave = <strong class="text-white">24 tools baru</strong></span>
+						</li>
+					</ul>
+				</div>
+			</section>
+
+			<!-- Features -->
+			<section class="group relative overflow-hidden rounded-2xl bg-neutral-900/50 border border-neutral-800 p-5 hover:border-emerald-500/20 transition-colors">
+				<div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+				<div class="relative">
+					<div class="flex items-center gap-3 mb-4">
+						<span class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-xl">✨</span>
+						<h2 class="text-lg font-semibold text-white">Fitur Lengkap</h2>
+					</div>
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+						<div class="flex items-start gap-2 text-sm">
+							<span class="text-emerald-400 mt-0.5">✓</span>
+							<span class="text-neutral-400">Kalkulasi hasil autoclave akurat</span>
+						</div>
+						<div class="flex items-start gap-2 text-sm">
+							<span class="text-emerald-400 mt-0.5">✓</span>
+							<span class="text-neutral-400">Perbandingan nilai WL real-time</span>
+						</div>
+						<div class="flex items-start gap-2 text-sm">
+							<span class="text-emerald-400 mt-0.5">✓</span>
+							<span class="text-neutral-400">Auto-repeat iterasi otomatis</span>
+						</div>
+						<div class="flex items-start gap-2 text-sm">
+							<span class="text-emerald-400 mt-0.5">✓</span>
+							<span class="text-neutral-400">Minimum remainder per tool</span>
+						</div>
+						<div class="flex items-start gap-2 text-sm">
+							<span class="text-emerald-400 mt-0.5">✓</span>
+							<span class="text-neutral-400">Format harga fleksibel (WL/item & item/WL)</span>
+						</div>
+						<div class="flex items-start gap-2 text-sm">
+							<span class="text-emerald-400 mt-0.5">✓</span>
+							<span class="text-neutral-400">Data tersimpan di browser (IndexedDB)</span>
+						</div>
+						<div class="flex items-start gap-2 text-sm">
+							<span class="text-emerald-400 mt-0.5">✓</span>
+							<span class="text-neutral-400">Design mobile-first & responsive</span>
+						</div>
+						<div class="flex items-start gap-2 text-sm">
+							<span class="text-emerald-400 mt-0.5">✓</span>
+							<span class="text-neutral-400">100% gratis, tanpa iklan</span>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- New Features Highlight -->
+			<section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 p-5">
+				<div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl"></div>
+				<div class="relative">
+					<div class="flex items-center gap-2 mb-4">
+						<span class="px-2 py-1 rounded-full bg-amber-500 text-white text-xs font-bold">NEW</span>
+						<h2 class="text-lg font-semibold text-white">Fitur Terbaru</h2>
+					</div>
+					<div class="space-y-3">
+						<div class="flex items-start gap-3 p-3 rounded-xl bg-black/20">
+							<span class="text-xl">🔄</span>
+							<div>
+								<h3 class="font-medium text-white text-sm">Auto-Repeat Autoclave</h3>
+								<p class="text-neutral-500 text-xs">Iterasi otomatis hingga quantity di bawah minimum. Aktifkan/nonaktifkan per tool.</p>
+							</div>
+						</div>
+						<div class="flex items-start gap-3 p-3 rounded-xl bg-black/20">
+							<span class="text-xl">📊</span>
+							<div>
+								<h3 class="font-medium text-white text-sm">Minimum Remainder</h3>
+								<p class="text-neutral-500 text-xs">Set sisa minimum per tool. Autoclave berhenti jika quantity ≤ minRemainder + 20.</p>
+							</div>
+						</div>
+						<div class="flex items-start gap-3 p-3 rounded-xl bg-black/20">
+							<span class="text-xl">💱</span>
+							<div>
+								<h3 class="font-medium text-white text-sm">Dual Price Format</h3>
+								<p class="text-neutral-500 text-xs">Support format "WL per item" dan "items per WL" sesuai kebiasaan trading.</p>
+							</div>
+						</div>
+						<div class="flex items-start gap-3 p-3 rounded-xl bg-black/20">
+							<span class="text-xl">📱</span>
+							<div>
+								<h3 class="font-medium text-white text-sm">Mobile-First UI</h3>
+								<p class="text-neutral-500 text-xs">Redesign total dengan expandable cards, sticky navigation, dan floating action button.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Privacy -->
+			<section class="group relative overflow-hidden rounded-2xl bg-neutral-900/50 border border-neutral-800 p-5 hover:border-purple-500/20 transition-colors">
+				<div class="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+				<div class="relative">
+					<div class="flex items-center gap-3 mb-3">
+						<span class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-xl">🔒</span>
+						<h2 class="text-lg font-semibold text-white">Privasi</h2>
+					</div>
+					<p class="text-neutral-400 text-sm leading-relaxed">
+						Semua data (jumlah tools, harga, pengaturan) disimpan <strong class="text-white">hanya di browser Anda</strong> 
+						menggunakan IndexedDB dan localStorage. Tidak ada data yang dikirim ke server manapun. 
+						Kami tidak menggunakan cookies, analytics, atau tracker apapun.
+					</p>
+				</div>
+			</section>
+
+			<!-- Tool List -->
+			<section class="group relative overflow-hidden rounded-2xl bg-neutral-900/50 border border-neutral-800 p-5 hover:border-cyan-500/20 transition-colors">
+				<div class="relative">
+					<div class="flex items-center gap-3 mb-4">
+						<span class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-xl">🔧</span>
+						<h2 class="text-lg font-semibold text-white">13 Surgical Tools</h2>
+					</div>
+					<div class="grid grid-cols-2 gap-2 text-sm">
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+							Surgical Sponge
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-amber-700"></span>
+							Surgical Splint
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+							Surgical Antiseptic
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-red-400"></span>
+							Surgical Antibiotics
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-purple-400"></span>
+							Surgical Anesthetic
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-gray-400"></span>
+							Surgical Scalpel
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-green-500"></span>
+							Surgical Stitches
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-blue-500"></span>
+							Surgical Lab Kit
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-slate-500"></span>
+							Surgical Clamp
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-yellow-600"></span>
+							Surgical Pins
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-red-600"></span>
+							Surgical Transfusion
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+							Surgical Ultrasound
+						</div>
+						<div class="flex items-center gap-2 text-neutral-400">
+							<span class="w-2 h-2 rounded-full bg-orange-500"></span>
+							Surgical Defibrillator
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Disclaimer -->
+			<section class="rounded-2xl bg-neutral-900/30 border border-neutral-800/50 p-5">
+				<div class="flex items-start gap-3">
+					<span class="text-neutral-600 text-xl">⚠️</span>
+					<div>
+						<h2 class="text-sm font-medium text-neutral-500 mb-1">Disclaimer</h2>
+						<p class="text-neutral-600 text-xs leading-relaxed">
+							Project ini tidak berafiliasi dengan Ubisoft atau Growtopia. 
+							"Growtopia" adalah merek dagang dari Ubisoft. 
+							Tool ini dibuat oleh komunitas untuk membantu sesama pemain.
+						</p>
+					</div>
+				</div>
 			</section>
 		</div>
 
 		<!-- Back to Calculator -->
-		<div class="mt-8 text-center">
+		<div class="mt-10 text-center pb-8">
 			<a 
 				href="/autoclave" 
-				class="inline-block px-6 py-3 bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold rounded-lg transition-colors"
+				class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold rounded-2xl transition-all shadow-lg shadow-amber-500/25 active:scale-[0.98]"
 			>
-				← Kembali ke Calculator
+				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+				</svg>
+				<span>Kembali ke Calculator</span>
 			</a>
 		</div>
 	</div>
