@@ -1,0 +1,111 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const title = 'About - Growtopia Autoclave Calculator';
+const description = 'Tentang Growtopia Autoclave Calculator. Tool gratis untuk menghitung hasil autoclave surgical tools dan membandingkan nilai WL.';
+---
+
+<Layout title={title} description={description}>
+	<div class="max-w-2xl mx-auto">
+		<!-- Page Header -->
+		<h1 class="text-2xl md:text-3xl font-bold text-amber-400 mb-6">
+			📖 Tentang Project Ini
+		</h1>
+
+		<!-- About Content -->
+		<div class="space-y-6 text-gray-300">
+			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+				<h2 class="text-lg font-bold text-white mb-3">Apa itu Autoclave Calculator?</h2>
+				<p class="text-gray-400">
+					Growtopia Autoclave Calculator adalah tool gratis untuk membantu pemain Growtopia 
+					menghitung hasil konversi surgical tools melalui mesin Autoclave. 
+					Tool ini membantu Anda mengetahui apakah melakukan autoclave akan menguntungkan 
+					atau merugikan berdasarkan harga pasar saat ini.
+				</p>
+			</section>
+
+			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+				<h2 class="text-lg font-bold text-white mb-3">Cara Kerja Autoclave</h2>
+				<ul class="text-gray-400 space-y-2 list-disc list-inside">
+					<li><strong>20 tools yang sama</strong> akan dikonversi menjadi <strong>1 dari setiap tool lain</strong></li>
+					<li>Ada 13 jenis surgical tools, jadi setiap autoclave menghasilkan 12 tools baru</li>
+					<li>Sisa tools yang kurang dari 20 tidak akan diproses</li>
+					<li>40 tools = 2× autoclave = 24 tools baru</li>
+				</ul>
+			</section>
+
+			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+				<h2 class="text-lg font-bold text-white mb-3">Fitur</h2>
+				<ul class="text-gray-400 space-y-2">
+					<li class="flex items-start gap-2">
+						<span class="text-green-400">✓</span>
+						<span>Kalkulasi hasil autoclave yang akurat</span>
+					</li>
+					<li class="flex items-start gap-2">
+						<span class="text-green-400">✓</span>
+						<span>Perbandingan nilai WL sebelum dan sesudah</span>
+					</li>
+					<li class="flex items-start gap-2">
+						<span class="text-green-400">✓</span>
+						<span>Data tersimpan di browser (IndexedDB)</span>
+					</li>
+					<li class="flex items-start gap-2">
+						<span class="text-green-400">✓</span>
+						<span>Tidak perlu login atau registrasi</span>
+					</li>
+					<li class="flex items-start gap-2">
+						<span class="text-green-400">✓</span>
+						<span>100% gratis tanpa iklan</span>
+					</li>
+				</ul>
+			</section>
+
+			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+				<h2 class="text-lg font-bold text-white mb-3">Privasi</h2>
+				<p class="text-gray-400">
+					Semua data (jumlah tools dan harga) disimpan <strong>hanya di browser Anda</strong> 
+					menggunakan IndexedDB. Tidak ada data yang dikirim ke server manapun. 
+					Kami tidak menggunakan cookies, analytics, atau tracker apapun.
+				</p>
+			</section>
+
+			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+				<h2 class="text-lg font-bold text-white mb-3">Daftar 13 Surgical Tools</h2>
+				<div class="grid grid-cols-2 gap-2 text-sm text-gray-400">
+					<div>• Surgical Sponge</div>
+					<div>• Surgical Splint</div>
+					<div>• Surgical Antiseptic</div>
+					<div>• Surgical Antibiotics</div>
+					<div>• Surgical Anesthetic</div>
+					<div>• Surgical Scalpel</div>
+					<div>• Surgical Stitches</div>
+					<div>• Surgical Lab Kit</div>
+					<div>• Surgical Clamp</div>
+					<div>• Surgical Pins</div>
+					<div>• Surgical Transfusion</div>
+					<div>• Surgical Ultrasound</div>
+					<div>• Surgical Defibrillator</div>
+				</div>
+			</section>
+
+			<section class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+				<h2 class="text-lg font-bold text-white mb-3">Disclaimer</h2>
+				<p class="text-gray-400 text-sm">
+					Project ini tidak berafiliasi dengan Ubisoft atau Growtopia. 
+					"Growtopia" adalah merek dagang dari Ubisoft. 
+					Tool ini dibuat oleh komunitas untuk membantu sesama pemain.
+				</p>
+			</section>
+		</div>
+
+		<!-- Back to Calculator -->
+		<div class="mt-8 text-center">
+			<a 
+				href="/autoclave" 
+				class="inline-block px-6 py-3 bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold rounded-lg transition-colors"
+			>
+				← Kembali ke Calculator
+			</a>
+		</div>
+	</div>
+</Layout>
