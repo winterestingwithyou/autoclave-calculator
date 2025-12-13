@@ -1,6 +1,6 @@
 /**
  * Autoclave Calculator - Main Interactive Component
- * Handles tool input, price management, and result display
+ * Mobile-first, aesthetic design with great UX
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -29,8 +29,8 @@ import {
   type ToolMinRemainders,
   type ToolAutoRepeats,
 } from '../lib/db';
-import { ToolInputRow } from './ToolInputRow';
-import { ResultTable } from './ResultTable';
+import { MobileToolCard } from './MobileToolCard';
+import { ResultsView } from './ResultsView';
 
 interface PriceData {
   value: number;
@@ -38,167 +38,132 @@ interface PriceData {
 }
 
 export function AutoclaveCalculator() {
-  // State
   const [quantities, setQuantities] = useState<Map<ToolType, number>>(new Map());
   const [prices, setPrices] = useState<Map<ToolType, PriceData>>(new Map());
   const [minRemainders, setMinRemainders] = useState<ToolMinRemainders>({});
   const [autoRepeats, setAutoRepeats] = useState<ToolAutoRepeats>({});
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'input' | 'result'>('input');
+  const [expandedTool, setExpandedTool] = useState<ToolType | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
-  // Initialize from IndexedDB
   useEffect(() => {
     async function loadData() {
       try {
         await initializeDB();
-        
         const storedQuantities = await getAllToolQuantities();
         const storedPrices = await getAllToolPrices();
         const storedMinRemainders = await getAllMinRemainders();
         const storedAutoRepeats = await getAllAutoRepeats();
-        
+
         const qMap = new Map<ToolType, number>();
         for (const { tool, quantity } of storedQuantities) {
           qMap.set(tool, quantity);
         }
-        
         const pMap = new Map<ToolType, PriceData>();
         for (const { tool, priceValue, priceType } of storedPrices) {
           pMap.set(tool, { value: priceValue, type: priceType });
         }
-        
         setQuantities(qMap);
         setPrices(pMap);
         setMinRemainders(storedMinRemainders);
         setAutoRepeats(storedAutoRepeats);
       } catch (error) {
-        console.error('Failed to load data from IndexedDB:', error);
+        console.error('Failed to load data:', error);
       } finally {
         setIsLoading(false);
       }
     }
-    
     loadData();
   }, []);
 
-  // Handlers
-  const handleQuantityChange = useCallback(async (tool: ToolType, quantity: number) => {
-    setQuantities((prev) => {
-      const next = new Map(prev);
-      next.set(tool, quantity);
-      return next;
-    });
-    
-    try {
-      await setToolQuantity(tool, quantity);
-    } catch (error) {
-      console.error('Failed to save quantity:', error);
-    }
-  }, []);
+  const handleQuantityChange = useCallback(
+    async (tool: ToolType, quantity: number) => {
+      setQuantities((prev) => {
+        const next = new Map(prev);
+        next.set(tool, quantity);
+        return next;
+      });
+      try {
+        await setToolQuantity(tool, quantity);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    []
+  );
 
-  const handlePriceChange = useCallback(async (tool: ToolType, value: number, type: PriceType) => {
-    setPrices((prev) => {
-      const next = new Map(prev);
-      next.set(tool, { value, type });
-      return next;
-    });
-    
-    try {
-      await setToolPrice(tool, value, type);
-    } catch (error) {
-      console.error('Failed to save price:', error);
-    }
-  }, []);
+  const handlePriceChange = useCallback(
+    async (tool: ToolType, value: number, type: PriceType) => {
+      setPrices((prev) => {
+        const next = new Map(prev);
+        next.set(tool, { value, type });
+        return next;
+      });
+      try {
+        await setToolPrice(tool, value, type);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    []
+  );
 
-  const handleMinRemainderChange = useCallback(async (tool: ToolType, value: number) => {
-    const newValue = Math.max(0, value);
-    setMinRemainders((prev) => ({
-      ...prev,
-      [tool]: newValue,
-    }));
-    
-    try {
-      await saveMinRemainder(tool, newValue);
-    } catch (error) {
-      console.error('Failed to save min remainder:', error);
-    }
-  }, []);
+  const handleMinRemainderChange = useCallback(
+    async (tool: ToolType, value: number) => {
+      setMinRemainders((prev) => ({ ...prev, [tool]: Math.max(0, value) }));
+      try {
+        await saveMinRemainder(tool, Math.max(0, value));
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    []
+  );
 
-  const handleResetQuantities = useCallback(async () => {
-    if (!confirm('Reset semua jumlah tools ke 0?')) return;
-    
+  const handleAutoRepeatChange = useCallback(
+    async (tool: ToolType, value: boolean) => {
+      setAutoRepeats((prev) => ({ ...prev, [tool]: value }));
+      try {
+        await saveAutoRepeat(tool, value);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    []
+  );
+
+  const handleResetAll = useCallback(async () => {
+    if (!confirm('Reset semua data?')) return;
     try {
-      await resetAllToolQuantities();
+      await Promise.all([
+        resetAllToolQuantities(),
+        resetAllToolPrices(),
+        resetAllMinRemainders(),
+        resetAllAutoRepeats(),
+      ]);
       setQuantities(new Map());
-    } catch (error) {
-      console.error('Failed to reset quantities:', error);
-    }
-  }, []);
-
-  const handleResetPrices = useCallback(async () => {
-    if (!confirm('Reset semua harga ke 0?')) return;
-    
-    try {
-      await resetAllToolPrices();
       const newPrices = new Map<ToolType, PriceData>();
-      TOOL_NAMES.forEach(tool => {
-        newPrices.set(tool, { value: 0, type: 'wl-each' });
+      const newMin: ToolMinRemainders = {};
+      const newAuto: ToolAutoRepeats = {};
+      TOOL_NAMES.forEach((t) => {
+        newPrices.set(t, { value: 0, type: 'wl-each' });
+        newMin[t] = 0;
+        newAuto[t] = true;
       });
       setPrices(newPrices);
-    } catch (error) {
-      console.error('Failed to reset prices:', error);
+      setMinRemainders(newMin);
+      setAutoRepeats(newAuto);
+    } catch (e) {
+      console.error(e);
     }
   }, []);
 
-  const handleResetMinRemainders = useCallback(async () => {
-    if (!confirm('Reset semua minimum sisa ke 0?')) return;
-    
-    try {
-      await resetAllMinRemainders();
-      const defaults: ToolMinRemainders = {};
-      TOOL_NAMES.forEach(tool => {
-        defaults[tool] = 0;
-      });
-      setMinRemainders(defaults);
-    } catch (error) {
-      console.error('Failed to reset min remainders:', error);
-    }
-  }, []);
-
-  const handleAutoRepeatChange = useCallback(async (tool: ToolType, value: boolean) => {
-    setAutoRepeats((prev) => ({
-      ...prev,
-      [tool]: value,
-    }));
-    
-    try {
-      await saveAutoRepeat(tool, value);
-    } catch (error) {
-      console.error('Failed to save auto repeat:', error);
-    }
-  }, []);
-
-  const handleResetAutoRepeats = useCallback(async () => {
-    if (!confirm('Reset semua auto-repeat ke aktif?')) return;
-    
-    try {
-      await resetAllAutoRepeats();
-      const defaults: ToolAutoRepeats = {};
-      TOOL_NAMES.forEach(tool => {
-        defaults[tool] = true;
-      });
-      setAutoRepeats(defaults);
-    } catch (error) {
-      console.error('Failed to reset auto repeats:', error);
-    }
-  }, []);
-
-  // Calculate results with per-tool minRemainder and autoRepeat
   const inputs: ToolInput[] = TOOL_NAMES.map((tool) => ({
     tool,
     quantity: quantities.get(tool) || 0,
     minRemainder: minRemainders[tool] || 0,
-    autoRepeat: autoRepeats[tool] !== false, // Default true
+    autoRepeat: autoRepeats[tool] !== false,
   }));
 
   const calculation = calculateFullAutoclave(inputs);
@@ -210,195 +175,180 @@ export function AutoclaveCalculator() {
   );
   const valueCalc = calculateValueDifference(calculation, priceMap);
   const breakdown = getValueBreakdown(calculation, priceMap);
-
   const totalTools = inputs.reduce((sum, i) => sum + i.quantity, 0);
-  const totalAutoclaves = calculation.results.reduce((sum, r) => sum + r.autoclaveCount, 0);
-  
-  // Check if all tools have prices set
-  const missingPrices = TOOL_NAMES.filter(tool => {
-    const p = prices.get(tool);
-    return !p || p.value <= 0;
-  });
-  const allPricesSet = missingPrices.length === 0;
+  const totalAutoclaves = calculation.results.reduce(
+    (sum, r) => sum + r.autoclaveCount,
+    0
+  );
+  const toolsWithQuantity = inputs.filter((i) => i.quantity > 0).length;
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-amber-400 text-lg">Loading...</div>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+          <p className="text-neutral-400 text-sm">Memuat data...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Price Warning */}
-      {!allPricesSet && (
-        <div className="mb-4 p-3 bg-amber-900/30 border border-amber-700 rounded-lg">
-          <p className="text-amber-400 text-sm">
-            ⚠️ <strong>Harga belum lengkap!</strong> Isi harga untuk semua tools agar kalkulasi nilai akurat.
-          </p>
-          <p className="text-amber-600 text-xs mt-1">
-            Missing: {missingPrices.length} tools
-          </p>
+    <div className="max-w-lg mx-auto px-4 pb-24">
+      {/* Hero Stats Card */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 p-5 mb-6">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="relative">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-neutral-400 text-xs uppercase tracking-wider mb-1">
+                Total Nilai
+              </p>
+              <p className="text-2xl font-bold text-white">
+                {valueCalc.beforeValue.toFixed(1)}{' '}
+                <span className="text-amber-400">WL</span>
+              </p>
+            </div>
+            {totalAutoclaves > 0 && (
+              <div
+                className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                  valueCalc.difference >= 0
+                    ? 'bg-emerald-500/20 text-emerald-400'
+                    : 'bg-red-500/20 text-red-400'
+                }`}
+              >
+                {valueCalc.difference >= 0 ? '+' : ''}
+                {valueCalc.difference.toFixed(2)} WL
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <MiniStat label="Tools" value={totalTools} />
+            <MiniStat label="Autoclave" value={`${totalAutoclaves}x`} highlight />
+            <MiniStat label="Iterasi" value={calculation.iterations} />
+          </div>
         </div>
-      )}
-
-      {/* Header Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <StatBox label="Total Tools" value={totalTools.toString()} />
-        <StatBox label="Autoclave" value={`${totalAutoclaves}×`} highlight />
-        <StatBox label="Nilai Awal" value={`${valueCalc.beforeValue.toFixed(2)} WL`} />
-        <StatBox 
-          label="Selisih" 
-          value={`${valueCalc.difference >= 0 ? '+' : ''}${valueCalc.difference.toFixed(2)} WL`}
-          highlight={valueCalc.difference !== 0}
-          positive={valueCalc.difference > 0}
-        />
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 mb-4">
-        <TabButton 
-          active={activeTab === 'input'} 
+      <div className="flex gap-2 p-1 bg-neutral-900/80 backdrop-blur-lg rounded-xl mb-4 sticky top-2 z-20">
+        <TabButton
+          active={activeTab === 'input'}
           onClick={() => setActiveTab('input')}
+          icon="📝"
         >
-          📝 Input
+          Input
         </TabButton>
-        <TabButton 
-          active={activeTab === 'result'} 
+        <TabButton
+          active={activeTab === 'result'}
           onClick={() => setActiveTab('result')}
+          icon="📊"
+          badge={totalAutoclaves > 0 ? totalAutoclaves : undefined}
         >
-          📊 Hasil
+          Hasil
         </TabButton>
       </div>
 
-      {/* Content */}
-      <div className="bg-gray-900 rounded-lg border border-gray-700 p-4">
-        {activeTab === 'input' ? (
-          <>
-            {/* Price Format Info */}
-            <div className="mb-4 p-3 bg-gray-800 rounded-lg text-xs text-gray-400">
-              <p className="font-medium text-gray-300 mb-1">💡 Format Harga:</p>
-              <ul className="space-y-1 ml-4">
-                <li><span className="text-amber-400">/WL</span> = items per WL (contoh: 5/WL = 5 item harganya 1 WL)</li>
-                <li><span className="text-amber-400">WL</span> = WL per item (contoh: 2 WL = 1 item harganya 2 WL)</li>
-              </ul>
-            </div>
+      {activeTab === 'input' ? (
+        <div className="space-y-3">
+          {/* Help text */}
+          <div className="flex items-center gap-2 text-xs text-neutral-500 px-1">
+            <span>💡</span>
+            <span>
+              Tap card untuk expand • {toolsWithQuantity}/13 tools diisi
+            </span>
+          </div>
 
-            {/* Input Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b-2 border-gray-600 text-gray-400">
-                    <th className="py-2 px-3 text-left">Tool</th>
-                    <th className="py-2 px-3 text-center">Jumlah</th>
-                    <th className="py-2 px-3 text-center">Min Sisa</th>
-                    <th className="py-2 px-3 text-center" title="Auto-repeat autoclave">🔄</th>
-                    <th className="py-2 px-3 text-center">Harga</th>
-                    <th className="py-2 px-3 text-center">WL/Item</th>
-                    <th className="py-2 px-3 text-center">Autoclave</th>
-                    <th className="py-2 px-3 text-center">Sisa</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {TOOL_NAMES.map((tool) => {
-                    const priceData = prices.get(tool) || { value: 0, type: 'wl-each' as PriceType };
-                    return (
-                      <ToolInputRow
-                        key={tool}
-                        tool={tool}
-                        quantity={quantities.get(tool) || 0}
-                        priceValue={priceData.value}
-                        priceType={priceData.type}
-                        minRemainder={minRemainders[tool] || 0}
-                        autoRepeat={autoRepeats[tool] !== false}
-                        onQuantityChange={handleQuantityChange}
-                        onPriceChange={handlePriceChange}
-                        onMinRemainderChange={handleMinRemainderChange}
-                        onAutoRepeatChange={handleAutoRepeatChange}
-                      />
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+          {/* Tool Cards */}
+          {TOOL_NAMES.map((tool) => {
+            const priceData = prices.get(tool) || {
+              value: 0,
+              type: 'wl-each' as PriceType,
+            };
+            const qty = quantities.get(tool) || 0;
+            const summary = calculation.summary.find((s) => s.tool === tool);
+            return (
+              <MobileToolCard
+                key={tool}
+                tool={tool}
+                quantity={qty}
+                priceValue={priceData.value}
+                priceType={priceData.type}
+                minRemainder={minRemainders[tool] || 0}
+                autoRepeat={autoRepeats[tool] !== false}
+                finalQuantity={summary?.finalQuantity || qty}
+                isExpanded={expandedTool === tool}
+                onToggleExpand={() =>
+                  setExpandedTool(expandedTool === tool ? null : tool)
+                }
+                onQuantityChange={handleQuantityChange}
+                onPriceChange={handlePriceChange}
+                onMinRemainderChange={handleMinRemainderChange}
+                onAutoRepeatChange={handleAutoRepeatChange}
+              />
+            );
+          })}
 
-            {/* Reset Buttons */}
-            <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-700">
+          {/* Settings Toggle */}
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="w-full py-3 text-neutral-500 text-sm flex items-center justify-center gap-2 hover:text-neutral-300 transition-colors"
+          >
+            <span>⚙️</span>
+            <span>{showSettings ? 'Sembunyikan' : 'Tampilkan'} Pengaturan</span>
+          </button>
+
+          {showSettings && (
+            <div className="p-4 rounded-xl bg-neutral-900/50 border border-neutral-800 space-y-3">
+              <p className="text-sm font-medium text-neutral-300">Reset Data</p>
               <button
-                onClick={handleResetQuantities}
-                className="px-4 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 
-                           rounded border border-gray-600 transition-colors"
+                onClick={handleResetAll}
+                className="w-full py-2.5 px-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors"
               >
-                Reset Jumlah
-              </button>
-              <button
-                onClick={handleResetMinRemainders}
-                className="px-4 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 
-                           rounded border border-gray-600 transition-colors"
-              >
-                Reset Min Sisa
-              </button>
-              <button
-                onClick={handleResetAutoRepeats}
-                className="px-4 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 
-                           rounded border border-gray-600 transition-colors"
-              >
-                Reset Auto🔄
-              </button>
-              <button
-                onClick={handleResetPrices}
-                className="px-4 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 
-                           rounded border border-gray-600 transition-colors"
-              >
-                Reset Harga
+                🗑️ Reset Semua Data
               </button>
             </div>
-          </>
-        ) : (
-          <ResultTable
-            calculation={calculation}
-            valueCalc={valueCalc}
-            breakdown={breakdown}
-          />
-        )}
-      </div>
+          )}
+        </div>
+      ) : (
+        <ResultsView
+          calculation={calculation}
+          valueCalc={valueCalc}
+          breakdown={breakdown}
+        />
+      )}
 
-      {/* Info Box */}
-      <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-        <h4 className="text-amber-400 font-bold mb-2">ℹ️ Cara Kerja Autoclave</h4>
-        <ul className="text-sm text-gray-400 space-y-1">
-          <li>• 20 tools <strong>yang sama</strong> → 1 dari <strong>setiap</strong> tool lain (12 tools)</li>
-          <li>• Sisa &lt; 20 tidak diproses</li>
-          <li>• 40 tools = 2× autoclave = 24 tools baru</li>
-          <li>• <strong>Min Sisa</strong>: Batasi minimum tools yang disimpan setelah autoclave</li>
-          <li>• <strong>🔄 Auto-repeat</strong>: Jika aktif, tools hasil autoclave akan di-autoclave lagi secara berulang hingga mendekati batas minimum</li>
-        </ul>
-      </div>
+      {/* Floating CTA */}
+      {activeTab === 'input' && totalAutoclaves > 0 && (
+        <div className="fixed bottom-6 left-4 right-4 max-w-lg mx-auto z-30">
+          <button
+            onClick={() => setActiveTab('result')}
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold shadow-lg shadow-amber-500/25 flex items-center justify-between active:scale-[0.98] transition-transform"
+          >
+            <span>Lihat Hasil Autoclave</span>
+            <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              {totalAutoclaves}x • {calculation.iterations} iterasi
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
-interface StatBoxProps {
+function MiniStat({
+  label,
+  value,
+  highlight,
+}: {
   label: string;
-  value: string;
+  value: string | number;
   highlight?: boolean;
-  positive?: boolean;
-}
-
-function StatBox({ label, value, highlight, positive }: StatBoxProps) {
+}) {
   return (
-    <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-      <p className="text-xs text-gray-500 mb-1">{label}</p>
-      <p className={`font-bold ${
-        highlight 
-          ? positive 
-            ? 'text-green-400' 
-            : positive === false 
-              ? 'text-red-400' 
-              : 'text-amber-400'
-          : 'text-white'
-      }`}>
+    <div className="text-center">
+      <p className="text-neutral-500 text-xs mb-0.5">{label}</p>
+      <p className={`font-semibold ${highlight ? 'text-amber-400' : 'text-white'}`}>
         {value}
       </p>
     </div>
@@ -408,20 +358,32 @@ function StatBox({ label, value, highlight, positive }: StatBoxProps) {
 interface TabButtonProps {
   active: boolean;
   onClick: () => void;
+  icon: string;
+  badge?: number;
   children: React.ReactNode;
 }
 
-function TabButton({ active, onClick, children }: TabButtonProps) {
+function TabButton({ active, onClick, icon, badge, children }: TabButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+      className={`flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${
         active
-          ? 'bg-gray-900 text-amber-400 border border-gray-700 border-b-gray-900'
-          : 'bg-gray-800 text-gray-400 hover:text-gray-300 border border-transparent'
+          ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/25'
+          : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
       }`}
     >
-      {children}
+      <span>{icon}</span>
+      <span>{children}</span>
+      {badge !== undefined && (
+        <span
+          className={`px-1.5 py-0.5 rounded-full text-xs ${
+            active ? 'bg-white/20' : 'bg-amber-500/20 text-amber-400'
+          }`}
+        >
+          {badge}
+        </span>
+      )}
     </button>
   );
 }
