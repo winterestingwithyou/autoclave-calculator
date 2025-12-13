@@ -10,7 +10,7 @@ import {
   calculateValueDifference,
   getValueBreakdown,
   createPriceMap,
-  type ToolPrice,
+  type PriceType,
 } from '../lib/pricing';
 import {
   initializeDB,
@@ -24,10 +24,15 @@ import {
 import { ToolInputRow } from './ToolInputRow';
 import { ResultTable } from './ResultTable';
 
+interface PriceData {
+  value: number;
+  type: PriceType;
+}
+
 export function AutoclaveCalculator() {
   // State
   const [quantities, setQuantities] = useState<Map<ToolType, number>>(new Map());
-  const [prices, setPrices] = useState<Map<ToolType, number>>(new Map());
+  const [prices, setPrices] = useState<Map<ToolType, PriceData>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'input' | 'result'>('input');
 
@@ -45,9 +50,9 @@ export function AutoclaveCalculator() {
           qMap.set(tool, quantity);
         }
         
-        const pMap = new Map<ToolType, number>();
-        for (const { tool, pricePerWL } of storedPrices) {
-          pMap.set(tool, pricePerWL);
+        const pMap = new Map<ToolType, PriceData>();
+        for (const { tool, priceValue, priceType } of storedPrices) {
+          pMap.set(tool, { value: priceValue, type: priceType });
         }
         
         setQuantities(qMap);
@@ -77,15 +82,15 @@ export function AutoclaveCalculator() {
     }
   }, []);
 
-  const handlePriceChange = useCallback(async (tool: ToolType, price: number) => {
+  const handlePriceChange = useCallback(async (tool: ToolType, value: number, type: PriceType) => {
     setPrices((prev) => {
       const next = new Map(prev);
-      next.set(tool, price);
+      next.set(tool, { value, type });
       return next;
     });
     
     try {
-      await setToolPrice(tool, price);
+      await setToolPrice(tool, value, type);
     } catch (error) {
       console.error('Failed to save price:', error);
     }
@@ -107,7 +112,11 @@ export function AutoclaveCalculator() {
     
     try {
       await resetAllToolPrices();
-      setPrices(new Map());
+      const newPrices = new Map<ToolType, PriceData>();
+      TOOL_NAMES.forEach(tool => {
+        newPrices.set(tool, { value: 0, type: 'wl-each' });
+      });
+      setPrices(newPrices);
     } catch (error) {
       console.error('Failed to reset prices:', error);
     }
@@ -121,13 +130,23 @@ export function AutoclaveCalculator() {
 
   const calculation = calculateFullAutoclave(inputs);
   const priceMap = createPriceMap(
-    TOOL_NAMES.map((tool) => ({ tool, pricePerWL: prices.get(tool) || 0 }))
+    TOOL_NAMES.map((tool) => {
+      const p = prices.get(tool) || { value: 0, type: 'wl-each' as PriceType };
+      return { tool, priceValue: p.value, priceType: p.type };
+    })
   );
   const valueCalc = calculateValueDifference(calculation, priceMap);
   const breakdown = getValueBreakdown(calculation, priceMap);
 
   const totalTools = inputs.reduce((sum, i) => sum + i.quantity, 0);
   const totalAutoclaves = calculation.results.reduce((sum, r) => sum + r.autoclaveCount, 0);
+  
+  // Check if all tools have prices set
+  const missingPrices = TOOL_NAMES.filter(tool => {
+    const p = prices.get(tool);
+    return !p || p.value <= 0;
+  });
+  const allPricesSet = missingPrices.length === 0;
 
   if (isLoading) {
     return (
@@ -139,14 +158,26 @@ export function AutoclaveCalculator() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Price Warning */}
+      {!allPricesSet && (
+        <div className="mb-4 p-3 bg-amber-900/30 border border-amber-700 rounded-lg">
+          <p className="text-amber-400 text-sm">
+            ⚠️ <strong>Harga belum lengkap!</strong> Isi harga untuk semua tools agar kalkulasi nilai akurat.
+          </p>
+          <p className="text-amber-600 text-xs mt-1">
+            Missing: {missingPrices.length} tools
+          </p>
+        </div>
+      )}
+
       {/* Header Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <StatBox label="Total Tools" value={totalTools.toString()} />
         <StatBox label="Autoclave" value={`${totalAutoclaves}×`} highlight />
-        <StatBox label="Nilai Awal" value={`${valueCalc.beforeValue.toFixed(1)} WL`} />
+        <StatBox label="Nilai Awal" value={`${valueCalc.beforeValue.toFixed(2)} WL`} />
         <StatBox 
           label="Selisih" 
-          value={`${valueCalc.difference >= 0 ? '+' : ''}${valueCalc.difference.toFixed(1)} WL`}
+          value={`${valueCalc.difference >= 0 ? '+' : ''}${valueCalc.difference.toFixed(2)} WL`}
           highlight={valueCalc.difference !== 0}
           positive={valueCalc.difference > 0}
         />
@@ -172,6 +203,15 @@ export function AutoclaveCalculator() {
       <div className="bg-gray-900 rounded-lg border border-gray-700 p-4">
         {activeTab === 'input' ? (
           <>
+            {/* Price Format Info */}
+            <div className="mb-4 p-3 bg-gray-800 rounded-lg text-xs text-gray-400">
+              <p className="font-medium text-gray-300 mb-1">💡 Format Harga:</p>
+              <ul className="space-y-1 ml-4">
+                <li><span className="text-amber-400">/WL</span> = items per WL (contoh: 5/WL = 5 item harganya 1 WL)</li>
+                <li><span className="text-amber-400">WL</span> = WL per item (contoh: 2 WL = 1 item harganya 2 WL)</li>
+              </ul>
+            </div>
+
             {/* Input Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -180,21 +220,26 @@ export function AutoclaveCalculator() {
                     <th className="py-2 px-3 text-left">Tool</th>
                     <th className="py-2 px-3 text-center">Jumlah</th>
                     <th className="py-2 px-3 text-center">Harga</th>
+                    <th className="py-2 px-3 text-center">WL/Item</th>
                     <th className="py-2 px-3 text-center">Autoclave</th>
                     <th className="py-2 px-3 text-center">Sisa</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {TOOL_NAMES.map((tool) => (
-                    <ToolInputRow
-                      key={tool}
-                      tool={tool}
-                      quantity={quantities.get(tool) || 0}
-                      price={prices.get(tool) || 0}
-                      onQuantityChange={handleQuantityChange}
-                      onPriceChange={handlePriceChange}
-                    />
-                  ))}
+                  {TOOL_NAMES.map((tool) => {
+                    const priceData = prices.get(tool) || { value: 0, type: 'wl-each' as PriceType };
+                    return (
+                      <ToolInputRow
+                        key={tool}
+                        tool={tool}
+                        quantity={quantities.get(tool) || 0}
+                        priceValue={priceData.value}
+                        priceType={priceData.type}
+                        onQuantityChange={handleQuantityChange}
+                        onPriceChange={handlePriceChange}
+                      />
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

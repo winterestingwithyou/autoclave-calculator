@@ -8,9 +8,10 @@
 import { openDB, type IDBPDatabase } from 'idb';
 import type { ToolType } from './tools';
 import { TOOL_NAMES } from './tools';
+import type { PriceType } from './pricing';
 
 const DB_NAME = 'autoclave-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumped version for new price schema
 
 // Object store names
 const STORE_TOOLS = 'tools';
@@ -26,10 +27,12 @@ export interface StoredToolState {
 
 /**
  * Tool price stored in IndexedDB
+ * Now supports price type (items-per-wl or wl-each)
  */
 export interface StoredToolPrice {
   tool: ToolType;
-  pricePerWL: number;
+  priceValue: number;
+  priceType: PriceType;
 }
 
 /**
@@ -55,7 +58,7 @@ export async function getDB(): Promise<IDBPDatabase<AutoclaveDB>> {
   if (dbInstance) return dbInstance;
 
   dbInstance = await openDB<AutoclaveDB>(DB_NAME, DB_VERSION, {
-    upgrade(db) {
+    upgrade(db, oldVersion) {
       // Create tools store if it doesn't exist
       if (!db.objectStoreNames.contains(STORE_TOOLS)) {
         db.createObjectStore(STORE_TOOLS, { keyPath: 'tool' });
@@ -64,6 +67,13 @@ export async function getDB(): Promise<IDBPDatabase<AutoclaveDB>> {
       // Create prices store if it doesn't exist
       if (!db.objectStoreNames.contains(STORE_PRICES)) {
         db.createObjectStore(STORE_PRICES, { keyPath: 'tool' });
+      }
+      
+      // Migration: if upgrading from v1, clear prices to reset schema
+      if (oldVersion < 2) {
+        // Old prices had different schema, clear them
+        const tx = db.transaction(STORE_PRICES, 'readwrite');
+        tx.objectStore(STORE_PRICES).clear();
       }
     },
   });
@@ -87,12 +97,12 @@ export async function initializeDB(): Promise<void> {
     await tx.done;
   }
 
-  // Check if prices store is empty
+  // Check if prices store is empty or needs initialization
   const pricesCount = await db.count(STORE_PRICES);
   if (pricesCount === 0) {
     const tx = db.transaction(STORE_PRICES, 'readwrite');
     for (const tool of TOOL_NAMES) {
-      await tx.store.put({ tool, pricePerWL: 0 });
+      await tx.store.put({ tool, priceValue: 0, priceType: 'wl-each' });
     }
     await tx.done;
   }
@@ -156,24 +166,42 @@ export async function resetAllToolQuantities(): Promise<void> {
  */
 export async function getAllToolPrices(): Promise<StoredToolPrice[]> {
   const db = await getDB();
-  return db.getAll(STORE_PRICES);
+  const prices = await db.getAll(STORE_PRICES);
+  // Ensure all prices have the new schema
+  return prices.map((p) => ({
+    tool: p.tool,
+    priceValue: p.priceValue ?? 0,
+    priceType: p.priceType ?? 'wl-each',
+  }));
 }
 
 /**
- * Get single tool price
+ * Get single tool price with type
  */
-export async function getToolPrice(tool: ToolType): Promise<number> {
+export async function getToolPrice(tool: ToolType): Promise<StoredToolPrice> {
   const db = await getDB();
   const price = await db.get(STORE_PRICES, tool);
-  return price?.pricePerWL || 0;
+  return {
+    tool,
+    priceValue: price?.priceValue ?? 0,
+    priceType: price?.priceType ?? 'wl-each',
+  };
 }
 
 /**
- * Set single tool price
+ * Set single tool price with type
  */
-export async function setToolPrice(tool: ToolType, pricePerWL: number): Promise<void> {
+export async function setToolPrice(
+  tool: ToolType, 
+  priceValue: number, 
+  priceType: PriceType
+): Promise<void> {
   const db = await getDB();
-  await db.put(STORE_PRICES, { tool, pricePerWL: Math.max(0, pricePerWL) });
+  await db.put(STORE_PRICES, { 
+    tool, 
+    priceValue: Math.max(0, priceValue),
+    priceType 
+  });
 }
 
 /**
@@ -183,7 +211,11 @@ export async function setAllToolPrices(prices: StoredToolPrice[]): Promise<void>
   const db = await getDB();
   const tx = db.transaction(STORE_PRICES, 'readwrite');
   for (const price of prices) {
-    await tx.store.put({ tool: price.tool, pricePerWL: Math.max(0, price.pricePerWL) });
+    await tx.store.put({ 
+      tool: price.tool, 
+      priceValue: Math.max(0, price.priceValue),
+      priceType: price.priceType 
+    });
   }
   await tx.done;
 }
@@ -195,7 +227,7 @@ export async function resetAllToolPrices(): Promise<void> {
   const db = await getDB();
   const tx = db.transaction(STORE_PRICES, 'readwrite');
   for (const tool of TOOL_NAMES) {
-    await tx.store.put({ tool, pricePerWL: 0 });
+    await tx.store.put({ tool, priceValue: 0, priceType: 'wl-each' });
   }
   await tx.done;
 }

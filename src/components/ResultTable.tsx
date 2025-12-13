@@ -6,7 +6,25 @@
 import type { AutoclaveCalculation } from '../lib/autoclave';
 import type { ValueCalculation, ToolValueBreakdown } from '../lib/pricing';
 import { TOOL_METADATA, type ToolType } from '../lib/tools';
-import { formatWL, formatDifference } from '../lib/pricing';
+
+/**
+ * Format WL value for display
+ */
+function formatWL(value: number): string {
+  if (value >= 100) {
+    const dls = value / 100;
+    return `${dls.toFixed(2)} DL`;
+  }
+  return `${value.toFixed(2)} WL`;
+}
+
+/**
+ * Format difference with +/- sign
+ */
+function formatDifference(value: number): string {
+  const sign = value >= 0 ? '+' : '';
+  return `${sign}${formatWL(value)}`;
+}
 
 interface ResultTableProps {
   calculation: AutoclaveCalculation | null;
