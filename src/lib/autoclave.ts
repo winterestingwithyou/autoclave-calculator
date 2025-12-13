@@ -5,6 +5,7 @@
  * - 20 tools of the SAME type → 1 of EACH other tool type (12 tools)
  * - Remainder < 20 is NOT processed
  * - All calculations are pure functions
+ * - Supports minimum remainder limit per tool (keep X tools minimum)
  */
 
 import {
@@ -14,11 +15,12 @@ import {
 } from './tools';
 
 /**
- * Input state for a single tool type
+ * Input state for a single tool type with optional min remainder
  */
 export interface ToolInput {
   tool: ToolType;
   quantity: number;
+  minRemainder?: number;
 }
 
 /**
@@ -28,6 +30,7 @@ export interface AutoclaveResult {
   inputTool: ToolType;
   inputQuantity: number;
   autoclaveCount: number;
+  toolsUsed: number;
   remainder: number;
   outputTools: ToolOutput[];
 }
@@ -56,23 +59,30 @@ export interface AutoclaveCalculation {
 export interface ToolSummary {
   tool: ToolType;
   originalQuantity: number;
+  minRemainder: number;
+  toolsUsed: number;
   remainderAfterAutoclave: number;
   receivedFromAutoclave: number;
   finalQuantity: number;
 }
 
 /**
- * Calculate how many times a tool can be autoclaved
+ * Calculate how many times a tool can be autoclaved with minimum remainder constraint
+ * @param quantity - Total quantity of tools
+ * @param minRemainder - Minimum tools to keep (default 0)
  */
-export function calculateAutoclaveCount(quantity: number): number {
-  return Math.floor(quantity / AUTOCLAVE_REQUIREMENT);
+export function calculateAutoclaveCount(quantity: number, minRemainder: number = 0): number {
+  // Available tools for autoclave = total - minimum to keep
+  const availableForAutoclave = Math.max(0, quantity - minRemainder);
+  return Math.floor(availableForAutoclave / AUTOCLAVE_REQUIREMENT);
 }
 
 /**
- * Calculate remainder after autoclave
+ * Calculate remainder after autoclave with minimum remainder constraint
  */
-export function calculateRemainder(quantity: number): number {
-  return quantity % AUTOCLAVE_REQUIREMENT;
+export function calculateRemainder(quantity: number, autoclaveCount: number): number {
+  const toolsUsed = autoclaveCount * AUTOCLAVE_REQUIREMENT;
+  return quantity - toolsUsed;
 }
 
 /**
@@ -84,11 +94,13 @@ export function getOtherTools(excludeTool: ToolType): ToolType[] {
 
 /**
  * Calculate autoclave result for a single tool type
- * Pure function, no side effects
+ * @param input - Tool input with quantity and optional minRemainder
  */
 export function calculateSingleAutoclave(input: ToolInput): AutoclaveResult {
-  const autoclaveCount = calculateAutoclaveCount(input.quantity);
-  const remainder = calculateRemainder(input.quantity);
+  const minRemainder = input.minRemainder || 0;
+  const autoclaveCount = calculateAutoclaveCount(input.quantity, minRemainder);
+  const toolsUsed = autoclaveCount * AUTOCLAVE_REQUIREMENT;
+  const remainder = input.quantity - toolsUsed;
   
   const otherTools = getOtherTools(input.tool);
   const outputTools: ToolOutput[] = otherTools.map((tool) => ({
@@ -100,6 +112,7 @@ export function calculateSingleAutoclave(input: ToolInput): AutoclaveResult {
     inputTool: input.tool,
     inputQuantity: input.quantity,
     autoclaveCount,
+    toolsUsed,
     remainder,
     outputTools,
   };
@@ -107,14 +120,14 @@ export function calculateSingleAutoclave(input: ToolInput): AutoclaveResult {
 
 /**
  * Calculate complete autoclave for all tool inputs
- * Main calculation function
+ * Each input can have its own minRemainder
  */
 export function calculateFullAutoclave(inputs: ToolInput[]): AutoclaveCalculation {
   // Filter out zero quantities
   const validInputs = inputs.filter((input) => input.quantity > 0);
   
-  // Calculate individual results
-  const results = validInputs.map(calculateSingleAutoclave);
+  // Calculate individual results (each with its own minRemainder)
+  const results = validInputs.map((input) => calculateSingleAutoclave(input));
   
   // Aggregate total output from all autoclaves
   const totalOutput = new Map<ToolType, number>();
@@ -127,21 +140,35 @@ export function calculateFullAutoclave(inputs: ToolInput[]): AutoclaveCalculatio
   }
   
   // Create input map for quick lookup
-  const inputMap = new Map<ToolType, number>();
+  const inputMap = new Map<ToolType, ToolInput>();
   for (const input of inputs) {
-    inputMap.set(input.tool, input.quantity);
+    inputMap.set(input.tool, input);
+  }
+  
+  // Create results map for quick lookup
+  const resultsMap = new Map<ToolType, AutoclaveResult>();
+  for (const result of results) {
+    resultsMap.set(result.inputTool, result);
   }
   
   // Calculate summary for all tools
   const summary: ToolSummary[] = TOOL_NAMES.map((tool) => {
-    const originalQuantity = inputMap.get(tool) || 0;
-    const result = results.find((r) => r.inputTool === tool);
-    const remainderAfterAutoclave = result?.remainder || originalQuantity;
+    const input = inputMap.get(tool);
+    const originalQuantity = input?.quantity || 0;
+    const minRemainder = input?.minRemainder || 0;
+    const result = resultsMap.get(tool);
+    
+    // If this tool was autoclaved, use the result
+    // Otherwise, remainder = original quantity (nothing was autoclaved)
+    const toolsUsed = result?.toolsUsed || 0;
+    const remainderAfterAutoclave = result ? result.remainder : originalQuantity;
     const receivedFromAutoclave = totalOutput.get(tool) || 0;
     
     return {
       tool,
       originalQuantity,
+      minRemainder,
+      toolsUsed,
       remainderAfterAutoclave,
       receivedFromAutoclave,
       finalQuantity: remainderAfterAutoclave + receivedFromAutoclave,
@@ -160,12 +187,16 @@ export function calculateFullAutoclave(inputs: ToolInput[]): AutoclaveCalculatio
  * Quick check if any tools can be autoclaved
  */
 export function canAutoclave(inputs: ToolInput[]): boolean {
-  return inputs.some((input) => input.quantity >= AUTOCLAVE_REQUIREMENT);
+  return inputs.some((input) => 
+    calculateAutoclaveCount(input.quantity, input.minRemainder || 0) > 0
+  );
 }
 
 /**
  * Get total autoclave operations possible
  */
 export function getTotalAutoclaveOperations(inputs: ToolInput[]): number {
-  return inputs.reduce((sum, input) => sum + calculateAutoclaveCount(input.quantity), 0);
+  return inputs.reduce((sum, input) => 
+    sum + calculateAutoclaveCount(input.quantity, input.minRemainder || 0), 0
+  );
 }

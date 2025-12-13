@@ -5,7 +5,7 @@
  */
 
 import { type ToolType, TOOL_METADATA, AUTOCLAVE_REQUIREMENT } from '../lib/tools';
-import { calculateAutoclaveCount } from '../lib/autoclave';
+import { calculateAutoclaveCount, calculateRemainder } from '../lib/autoclave';
 import { type PriceType, toWLPerItem } from '../lib/pricing';
 
 interface ToolInputRowProps {
@@ -13,8 +13,10 @@ interface ToolInputRowProps {
   quantity: number;
   priceValue: number;
   priceType: PriceType;
+  minRemainder: number;
   onQuantityChange: (tool: ToolType, quantity: number) => void;
   onPriceChange: (tool: ToolType, value: number, type: PriceType) => void;
+  onMinRemainderChange: (tool: ToolType, minRemainder: number) => void;
 }
 
 export function ToolInputRow({
@@ -22,11 +24,14 @@ export function ToolInputRow({
   quantity,
   priceValue,
   priceType,
+  minRemainder,
   onQuantityChange,
   onPriceChange,
+  onMinRemainderChange,
 }: ToolInputRowProps) {
   const metadata = TOOL_METADATA[tool];
-  const autoclaveCount = calculateAutoclaveCount(quantity);
+  const autoclaveCount = calculateAutoclaveCount(quantity, minRemainder);
+  const remainder = calculateRemainder(quantity, autoclaveCount);
   const canAutoclave = autoclaveCount > 0;
   const wlPerItem = toWLPerItem(priceValue, priceType);
 
@@ -57,6 +62,24 @@ export function ToolInputRow({
           }}
           placeholder="0"
           className="w-20 px-2 py-1 text-sm bg-gray-900 border border-gray-600 rounded 
+                     text-white text-center focus:border-amber-500 focus:outline-none
+                     [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none 
+                     [&::-webkit-inner-spin-button]:appearance-none"
+        />
+      </td>
+
+      {/* Min Remainder Input */}
+      <td className="py-2 px-3">
+        <input
+          type="number"
+          min="0"
+          value={minRemainder || ''}
+          onChange={(e) => {
+            const val = parseInt(e.target.value, 10);
+            onMinRemainderChange(tool, isNaN(val) ? 0 : val);
+          }}
+          placeholder="0"
+          className="w-16 px-2 py-1 text-sm bg-gray-900 border border-gray-600 rounded 
                      text-white text-center focus:border-amber-500 focus:outline-none
                      [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none 
                      [&::-webkit-inner-spin-button]:appearance-none"
@@ -120,7 +143,7 @@ export function ToolInputRow({
       {/* Remainder */}
       <td className="py-2 px-3 text-center">
         <span className={quantity > 0 ? 'text-gray-300' : 'text-gray-600'}>
-          {quantity > 0 ? quantity % AUTOCLAVE_REQUIREMENT : '-'}
+          {quantity > 0 ? remainder : '-'}
         </span>
       </td>
     </tr>

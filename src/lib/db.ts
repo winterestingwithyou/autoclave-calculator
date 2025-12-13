@@ -240,6 +240,7 @@ export async function resetAllToolPrices(): Promise<void> {
 export async function clearAllData(): Promise<void> {
   await resetAllToolQuantities();
   await resetAllToolPrices();
+  await resetAllMinRemainders();
 }
 
 /**
@@ -248,10 +249,98 @@ export async function clearAllData(): Promise<void> {
 export async function exportData(): Promise<{
   tools: StoredToolState[];
   prices: StoredToolPrice[];
+  minRemainders: ToolMinRemainders;
 }> {
   const tools = await getAllToolQuantities();
   const prices = await getAllToolPrices();
-  return { tools, prices };
+  const minRemainders = await getAllMinRemainders();
+  return { tools, prices, minRemainders };
+}
+
+// ============ SETTINGS (using localStorage for simplicity) ============
+
+const MIN_REMAINDER_KEY = 'autoclave-min-remainders';
+
+/**
+ * Min remainder setting per tool (stored as JSON object)
+ */
+export interface ToolMinRemainders {
+  [tool: string]: number;
+}
+
+/**
+ * Get all minimum remainder settings (per tool)
+ */
+export async function getAllMinRemainders(): Promise<ToolMinRemainders> {
+  try {
+    const stored = localStorage.getItem(MIN_REMAINDER_KEY);
+    if (stored !== null) {
+      const parsed = JSON.parse(stored);
+      // Validate and sanitize
+      const result: ToolMinRemainders = {};
+      for (const tool of TOOL_NAMES) {
+        const value = parsed[tool];
+        result[tool] = typeof value === 'number' && !isNaN(value) ? Math.max(0, value) : 0;
+      }
+      return result;
+    }
+  } catch {
+    // localStorage might not be available or invalid JSON
+  }
+  // Return default (all zeros)
+  const defaults: ToolMinRemainders = {};
+  for (const tool of TOOL_NAMES) {
+    defaults[tool] = 0;
+  }
+  return defaults;
+}
+
+/**
+ * Get minimum remainder for a specific tool
+ */
+export async function getMinRemainder(tool: ToolType): Promise<number> {
+  const all = await getAllMinRemainders();
+  return all[tool] || 0;
+}
+
+/**
+ * Set minimum remainder for a specific tool
+ */
+export async function setMinRemainder(tool: ToolType, value: number): Promise<void> {
+  try {
+    const all = await getAllMinRemainders();
+    all[tool] = Math.max(0, value);
+    localStorage.setItem(MIN_REMAINDER_KEY, JSON.stringify(all));
+  } catch {
+    // localStorage might not be available
+  }
+}
+
+/**
+ * Set all minimum remainders at once
+ */
+export async function setAllMinRemainders(values: ToolMinRemainders): Promise<void> {
+  try {
+    const sanitized: ToolMinRemainders = {};
+    for (const tool of TOOL_NAMES) {
+      const value = values[tool];
+      sanitized[tool] = typeof value === 'number' && !isNaN(value) ? Math.max(0, value) : 0;
+    }
+    localStorage.setItem(MIN_REMAINDER_KEY, JSON.stringify(sanitized));
+  } catch {
+    // localStorage might not be available
+  }
+}
+
+/**
+ * Reset all minimum remainders to zero
+ */
+export async function resetAllMinRemainders(): Promise<void> {
+  const defaults: ToolMinRemainders = {};
+  for (const tool of TOOL_NAMES) {
+    defaults[tool] = 0;
+  }
+  await setAllMinRemainders(defaults);
 }
 
 /**
