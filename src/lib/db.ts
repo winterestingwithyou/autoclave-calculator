@@ -343,6 +343,92 @@ export async function resetAllMinRemainders(): Promise<void> {
   await setAllMinRemainders(defaults);
 }
 
+// ============ AUTO REPEAT SETTINGS ============
+
+const AUTO_REPEAT_KEY = 'autoclave-auto-repeats';
+
+/**
+ * Auto repeat setting per tool (stored as JSON object)
+ */
+export interface ToolAutoRepeats {
+  [tool: string]: boolean;
+}
+
+/**
+ * Get all auto repeat settings (per tool)
+ */
+export async function getAllAutoRepeats(): Promise<ToolAutoRepeats> {
+  try {
+    const stored = localStorage.getItem(AUTO_REPEAT_KEY);
+    if (stored !== null) {
+      const parsed = JSON.parse(stored);
+      // Validate and sanitize
+      const result: ToolAutoRepeats = {};
+      for (const tool of TOOL_NAMES) {
+        const value = parsed[tool];
+        result[tool] = typeof value === 'boolean' ? value : true; // Default true
+      }
+      return result;
+    }
+  } catch {
+    // localStorage might not be available or invalid JSON
+  }
+  // Return default (all true)
+  const defaults: ToolAutoRepeats = {};
+  for (const tool of TOOL_NAMES) {
+    defaults[tool] = true;
+  }
+  return defaults;
+}
+
+/**
+ * Get auto repeat for a specific tool
+ */
+export async function getAutoRepeat(tool: ToolType): Promise<boolean> {
+  const all = await getAllAutoRepeats();
+  return all[tool] !== false; // Default true
+}
+
+/**
+ * Set auto repeat for a specific tool
+ */
+export async function setAutoRepeat(tool: ToolType, value: boolean): Promise<void> {
+  try {
+    const all = await getAllAutoRepeats();
+    all[tool] = value;
+    localStorage.setItem(AUTO_REPEAT_KEY, JSON.stringify(all));
+  } catch {
+    // localStorage might not be available
+  }
+}
+
+/**
+ * Set all auto repeats at once
+ */
+export async function setAllAutoRepeats(values: ToolAutoRepeats): Promise<void> {
+  try {
+    const sanitized: ToolAutoRepeats = {};
+    for (const tool of TOOL_NAMES) {
+      const value = values[tool];
+      sanitized[tool] = typeof value === 'boolean' ? value : true;
+    }
+    localStorage.setItem(AUTO_REPEAT_KEY, JSON.stringify(sanitized));
+  } catch {
+    // localStorage might not be available
+  }
+}
+
+/**
+ * Reset all auto repeats to true
+ */
+export async function resetAllAutoRepeats(): Promise<void> {
+  const defaults: ToolAutoRepeats = {};
+  for (const tool of TOOL_NAMES) {
+    defaults[tool] = true;
+  }
+  await setAllAutoRepeats(defaults);
+}
+
 /**
  * Import data from backup
  */

@@ -97,23 +97,53 @@ export function ResultTable({ calculation, valueCalc, breakdown }: ResultTablePr
         </table>
       </div>
 
+      {/* Iteration Info */}
+      {calculation.iterations > 1 && (
+        <div className="bg-amber-900/30 rounded-lg p-4 border border-amber-700">
+          <h4 className="text-amber-400 font-bold mb-2">
+            🔄 Auto-Repeat: {calculation.iterations} Iterasi
+          </h4>
+          <div className="space-y-2 text-sm">
+            {calculation.iterationDetails.map((detail) => (
+              <div key={detail.iteration} className="flex items-start gap-2">
+                <span className="text-amber-500 font-mono">#{detail.iteration}</span>
+                <div className="text-gray-400">
+                  {detail.totalAutoclaves}× autoclave dari{' '}
+                  <span className="text-gray-300">
+                    {detail.toolsProcessed.map(t => 
+                      `${TOOL_METADATA[t.tool].shortName}(${t.autoclaveCount}×)`
+                    ).join(', ')}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Autoclave Operations Summary */}
       <div className="bg-gray-800/50 rounded-lg p-4">
-        <h4 className="text-amber-400 font-bold mb-3">📊 Detail Operasi Autoclave</h4>
+        <h4 className="text-amber-400 font-bold mb-3">📊 Total Operasi Autoclave</h4>
         <div className="space-y-2">
-          {calculation.results
-            .filter((r) => r.autoclaveCount > 0)
-            .map((result) => (
-              <div key={result.inputTool} className="text-sm">
+          {calculation.summary
+            .filter((s) => s.totalToolsUsed > 0)
+            .map((summary) => (
+              <div key={summary.tool} className="text-sm">
                 <span className="text-gray-300">
-                  {TOOL_METADATA[result.inputTool].shortName}:
+                  {TOOL_METADATA[summary.tool].shortName}:
                 </span>
                 <span className="text-amber-300 ml-2">
-                  {result.inputQuantity} → {result.autoclaveCount}× autoclave
+                  {summary.originalQuantity} → -{summary.totalToolsUsed} digunakan
                 </span>
-                <span className="text-gray-500 ml-2">
-                  (sisa: {result.remainder})
+                <span className="text-green-400 ml-2">
+                  +{summary.totalReceived} diterima
                 </span>
+                <span className="text-white ml-2 font-medium">
+                  = {summary.finalQuantity}
+                </span>
+                {!summary.autoRepeat && (
+                  <span className="text-gray-500 ml-2">(no auto-repeat)</span>
+                )}
               </div>
             ))}
         </div>

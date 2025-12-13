@@ -21,6 +21,7 @@ export interface ToolInput {
   tool: ToolType;
   quantity: number;
   minRemainder?: number;
+  autoRepeat?: boolean; // Whether to auto-repeat autoclave on output tools
 }
 
 /**
@@ -51,6 +52,17 @@ export interface AutoclaveCalculation {
   results: AutoclaveResult[];
   totalOutput: Map<ToolType, number>;
   summary: ToolSummary[];
+  iterations: number; // How many iterations were performed
+  iterationDetails: IterationDetail[]; // Details per iteration
+}
+
+/**
+ * Detail of a single iteration
+ */
+export interface IterationDetail {
+  iteration: number;
+  totalAutoclaves: number;
+  toolsProcessed: { tool: ToolType; autoclaveCount: number }[];
 }
 
 /**
@@ -60,9 +72,9 @@ export interface ToolSummary {
   tool: ToolType;
   originalQuantity: number;
   minRemainder: number;
-  toolsUsed: number;
-  remainderAfterAutoclave: number;
-  receivedFromAutoclave: number;
+  autoRepeat: boolean;
+  totalToolsUsed: number; // Total across all iterations
+  totalReceived: number; // Total received across all iterations
   finalQuantity: number;
 }
 
@@ -119,67 +131,133 @@ export function calculateSingleAutoclave(input: ToolInput): AutoclaveResult {
 }
 
 /**
- * Calculate complete autoclave for all tool inputs
- * Each input can have its own minRemainder
+ * Calculate complete autoclave with auto-repeat feature
+ * Iteratively autoclaves tools until no more can be processed
+ * Each input can have its own minRemainder and autoRepeat setting
  */
 export function calculateFullAutoclave(inputs: ToolInput[]): AutoclaveCalculation {
-  // Filter out zero quantities
-  const validInputs = inputs.filter((input) => input.quantity > 0);
+  // Build config maps from inputs
+  const configMap = new Map<ToolType, { minRemainder: number; autoRepeat: boolean }>();
+  for (const input of inputs) {
+    configMap.set(input.tool, {
+      minRemainder: input.minRemainder || 0,
+      autoRepeat: input.autoRepeat !== false, // Default true
+    });
+  }
   
-  // Calculate individual results (each with its own minRemainder)
-  const results = validInputs.map((input) => calculateSingleAutoclave(input));
+  // Current quantities (will be mutated during iterations)
+  const currentQuantities = new Map<ToolType, number>();
+  for (const tool of TOOL_NAMES) {
+    const input = inputs.find(i => i.tool === tool);
+    currentQuantities.set(tool, input?.quantity || 0);
+  }
   
-  // Aggregate total output from all autoclaves
-  const totalOutput = new Map<ToolType, number>();
+  // Track totals
+  const totalUsed = new Map<ToolType, number>();
+  const totalReceived = new Map<ToolType, number>();
+  for (const tool of TOOL_NAMES) {
+    totalUsed.set(tool, 0);
+    totalReceived.set(tool, 0);
+  }
   
-  for (const result of results) {
-    for (const output of result.outputTools) {
-      const current = totalOutput.get(output.tool) || 0;
-      totalOutput.set(output.tool, current + output.quantity);
+  const allResults: AutoclaveResult[] = [];
+  const iterationDetails: IterationDetail[] = [];
+  let iteration = 0;
+  const MAX_ITERATIONS = 1000; // Safety limit
+  
+  // Keep iterating until no more autoclaves can be done
+  while (iteration < MAX_ITERATIONS) {
+    iteration++;
+    
+    // Build inputs for this iteration
+    const iterInputs: ToolInput[] = TOOL_NAMES.map(tool => {
+      const config = configMap.get(tool) || { minRemainder: 0, autoRepeat: true };
+      const quantity = currentQuantities.get(tool) || 0;
+      
+      // Only process if autoRepeat is enabled (or first iteration)
+      // First iteration always processes regardless of autoRepeat
+      const shouldProcess = iteration === 1 || config.autoRepeat;
+      
+      return {
+        tool,
+        quantity: shouldProcess ? quantity : 0,
+        minRemainder: config.minRemainder,
+      };
+    }).filter(i => i.quantity > 0);
+    
+    // Calculate autoclaves for this iteration
+    const iterResults = iterInputs
+      .map(input => calculateSingleAutoclave(input))
+      .filter(r => r.autoclaveCount > 0);
+    
+    // If no autoclaves happened, we're done
+    if (iterResults.length === 0) {
+      break;
+    }
+    
+    // Record iteration detail
+    const detail: IterationDetail = {
+      iteration,
+      totalAutoclaves: iterResults.reduce((sum, r) => sum + r.autoclaveCount, 0),
+      toolsProcessed: iterResults.map(r => ({
+        tool: r.inputTool,
+        autoclaveCount: r.autoclaveCount,
+      })),
+    };
+    iterationDetails.push(detail);
+    
+    // Apply results
+    for (const result of iterResults) {
+      allResults.push(result);
+      
+      // Update current quantity (subtract used)
+      const currentQty = currentQuantities.get(result.inputTool) || 0;
+      currentQuantities.set(result.inputTool, currentQty - result.toolsUsed);
+      
+      // Track total used
+      const prevUsed = totalUsed.get(result.inputTool) || 0;
+      totalUsed.set(result.inputTool, prevUsed + result.toolsUsed);
+      
+      // Add output tools to current quantities and track received
+      for (const output of result.outputTools) {
+        const outputQty = currentQuantities.get(output.tool) || 0;
+        currentQuantities.set(output.tool, outputQty + output.quantity);
+        
+        const prevReceived = totalReceived.get(output.tool) || 0;
+        totalReceived.set(output.tool, prevReceived + output.quantity);
+      }
     }
   }
   
-  // Create input map for quick lookup
-  const inputMap = new Map<ToolType, ToolInput>();
-  for (const input of inputs) {
-    inputMap.set(input.tool, input);
-  }
-  
-  // Create results map for quick lookup
-  const resultsMap = new Map<ToolType, AutoclaveResult>();
-  for (const result of results) {
-    resultsMap.set(result.inputTool, result);
-  }
-  
-  // Calculate summary for all tools
-  const summary: ToolSummary[] = TOOL_NAMES.map((tool) => {
-    const input = inputMap.get(tool);
-    const originalQuantity = input?.quantity || 0;
-    const minRemainder = input?.minRemainder || 0;
-    const result = resultsMap.get(tool);
-    
-    // If this tool was autoclaved, use the result
-    // Otherwise, remainder = original quantity (nothing was autoclaved)
-    const toolsUsed = result?.toolsUsed || 0;
-    const remainderAfterAutoclave = result ? result.remainder : originalQuantity;
-    const receivedFromAutoclave = totalOutput.get(tool) || 0;
+  // Build final summary
+  const summary: ToolSummary[] = TOOL_NAMES.map(tool => {
+    const input = inputs.find(i => i.tool === tool);
+    const config = configMap.get(tool) || { minRemainder: 0, autoRepeat: true };
     
     return {
       tool,
-      originalQuantity,
-      minRemainder,
-      toolsUsed,
-      remainderAfterAutoclave,
-      receivedFromAutoclave,
-      finalQuantity: remainderAfterAutoclave + receivedFromAutoclave,
+      originalQuantity: input?.quantity || 0,
+      minRemainder: config.minRemainder,
+      autoRepeat: config.autoRepeat,
+      totalToolsUsed: totalUsed.get(tool) || 0,
+      totalReceived: totalReceived.get(tool) || 0,
+      finalQuantity: currentQuantities.get(tool) || 0,
     };
   });
+  
+  // Build total output map (final received amounts)
+  const totalOutput = new Map<ToolType, number>();
+  for (const tool of TOOL_NAMES) {
+    totalOutput.set(tool, totalReceived.get(tool) || 0);
+  }
 
   return {
     inputs,
-    results,
+    results: allResults,
     totalOutput,
     summary,
+    iterations: iterationDetails.length,
+    iterationDetails,
   };
 }
 

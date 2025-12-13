@@ -23,7 +23,11 @@ import {
   getAllMinRemainders,
   setMinRemainder as saveMinRemainder,
   resetAllMinRemainders,
+  getAllAutoRepeats,
+  setAutoRepeat as saveAutoRepeat,
+  resetAllAutoRepeats,
   type ToolMinRemainders,
+  type ToolAutoRepeats,
 } from '../lib/db';
 import { ToolInputRow } from './ToolInputRow';
 import { ResultTable } from './ResultTable';
@@ -38,6 +42,7 @@ export function AutoclaveCalculator() {
   const [quantities, setQuantities] = useState<Map<ToolType, number>>(new Map());
   const [prices, setPrices] = useState<Map<ToolType, PriceData>>(new Map());
   const [minRemainders, setMinRemainders] = useState<ToolMinRemainders>({});
+  const [autoRepeats, setAutoRepeats] = useState<ToolAutoRepeats>({});
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'input' | 'result'>('input');
 
@@ -50,6 +55,7 @@ export function AutoclaveCalculator() {
         const storedQuantities = await getAllToolQuantities();
         const storedPrices = await getAllToolPrices();
         const storedMinRemainders = await getAllMinRemainders();
+        const storedAutoRepeats = await getAllAutoRepeats();
         
         const qMap = new Map<ToolType, number>();
         for (const { tool, quantity } of storedQuantities) {
@@ -64,6 +70,7 @@ export function AutoclaveCalculator() {
         setQuantities(qMap);
         setPrices(pMap);
         setMinRemainders(storedMinRemainders);
+        setAutoRepeats(storedAutoRepeats);
       } catch (error) {
         console.error('Failed to load data from IndexedDB:', error);
       } finally {
@@ -158,11 +165,40 @@ export function AutoclaveCalculator() {
     }
   }, []);
 
-  // Calculate results with per-tool minRemainder
+  const handleAutoRepeatChange = useCallback(async (tool: ToolType, value: boolean) => {
+    setAutoRepeats((prev) => ({
+      ...prev,
+      [tool]: value,
+    }));
+    
+    try {
+      await saveAutoRepeat(tool, value);
+    } catch (error) {
+      console.error('Failed to save auto repeat:', error);
+    }
+  }, []);
+
+  const handleResetAutoRepeats = useCallback(async () => {
+    if (!confirm('Reset semua auto-repeat ke aktif?')) return;
+    
+    try {
+      await resetAllAutoRepeats();
+      const defaults: ToolAutoRepeats = {};
+      TOOL_NAMES.forEach(tool => {
+        defaults[tool] = true;
+      });
+      setAutoRepeats(defaults);
+    } catch (error) {
+      console.error('Failed to reset auto repeats:', error);
+    }
+  }, []);
+
+  // Calculate results with per-tool minRemainder and autoRepeat
   const inputs: ToolInput[] = TOOL_NAMES.map((tool) => ({
     tool,
     quantity: quantities.get(tool) || 0,
     minRemainder: minRemainders[tool] || 0,
+    autoRepeat: autoRepeats[tool] !== false, // Default true
   }));
 
   const calculation = calculateFullAutoclave(inputs);
@@ -257,6 +293,7 @@ export function AutoclaveCalculator() {
                     <th className="py-2 px-3 text-left">Tool</th>
                     <th className="py-2 px-3 text-center">Jumlah</th>
                     <th className="py-2 px-3 text-center">Min Sisa</th>
+                    <th className="py-2 px-3 text-center" title="Auto-repeat autoclave">🔄</th>
                     <th className="py-2 px-3 text-center">Harga</th>
                     <th className="py-2 px-3 text-center">WL/Item</th>
                     <th className="py-2 px-3 text-center">Autoclave</th>
@@ -274,9 +311,11 @@ export function AutoclaveCalculator() {
                         priceValue={priceData.value}
                         priceType={priceData.type}
                         minRemainder={minRemainders[tool] || 0}
+                        autoRepeat={autoRepeats[tool] !== false}
                         onQuantityChange={handleQuantityChange}
                         onPriceChange={handlePriceChange}
                         onMinRemainderChange={handleMinRemainderChange}
+                        onAutoRepeatChange={handleAutoRepeatChange}
                       />
                     );
                   })}
@@ -299,6 +338,13 @@ export function AutoclaveCalculator() {
                            rounded border border-gray-600 transition-colors"
               >
                 Reset Min Sisa
+              </button>
+              <button
+                onClick={handleResetAutoRepeats}
+                className="px-4 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 
+                           rounded border border-gray-600 transition-colors"
+              >
+                Reset Auto🔄
               </button>
               <button
                 onClick={handleResetPrices}
@@ -325,7 +371,8 @@ export function AutoclaveCalculator() {
           <li>• 20 tools <strong>yang sama</strong> → 1 dari <strong>setiap</strong> tool lain (12 tools)</li>
           <li>• Sisa &lt; 20 tidak diproses</li>
           <li>• 40 tools = 2× autoclave = 24 tools baru</li>
-          <li>• Gunakan "Min Sisa" per tool untuk membatasi berapa tools yang ingin disimpan</li>
+          <li>• <strong>Min Sisa</strong>: Batasi minimum tools yang disimpan setelah autoclave</li>
+          <li>• <strong>🔄 Auto-repeat</strong>: Jika aktif, tools hasil autoclave akan di-autoclave lagi secara berulang hingga mendekati batas minimum</li>
         </ul>
       </div>
     </div>

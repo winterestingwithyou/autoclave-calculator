@@ -14,9 +14,11 @@ interface ToolInputRowProps {
   priceValue: number;
   priceType: PriceType;
   minRemainder: number;
+  autoRepeat: boolean;
   onQuantityChange: (tool: ToolType, quantity: number) => void;
   onPriceChange: (tool: ToolType, value: number, type: PriceType) => void;
   onMinRemainderChange: (tool: ToolType, minRemainder: number) => void;
+  onAutoRepeatChange: (tool: ToolType, autoRepeat: boolean) => void;
 }
 
 export function ToolInputRow({
@@ -25,9 +27,11 @@ export function ToolInputRow({
   priceValue,
   priceType,
   minRemainder,
+  autoRepeat,
   onQuantityChange,
   onPriceChange,
   onMinRemainderChange,
+  onAutoRepeatChange,
 }: ToolInputRowProps) {
   const metadata = TOOL_METADATA[tool];
   const autoclaveCount = calculateAutoclaveCount(quantity, minRemainder);
@@ -86,6 +90,18 @@ export function ToolInputRow({
         />
       </td>
 
+      {/* Auto Repeat Checkbox */}
+      <td className="py-2 px-3 text-center">
+        <input
+          type="checkbox"
+          checked={autoRepeat}
+          onChange={(e) => onAutoRepeatChange(tool, e.target.checked)}
+          className="w-4 h-4 rounded border-gray-600 bg-gray-900 text-amber-500 
+                     focus:ring-amber-500 focus:ring-offset-gray-800 cursor-pointer"
+          title={autoRepeat ? 'Auto-repeat aktif' : 'Auto-repeat nonaktif'}
+        />
+      </td>
+
       {/* Price Input with Type Selector */}
       <td className="py-2 px-3">
         <div className="flex items-center gap-1">
@@ -131,7 +147,7 @@ export function ToolInputRow({
         )}
       </td>
 
-      {/* Autoclave Count */}
+      {/* Autoclave Count (first iteration only) */}
       <td className="py-2 px-3 text-center">
         {canAutoclave ? (
           <span className="text-green-400 font-bold">×{autoclaveCount}</span>
@@ -140,7 +156,7 @@ export function ToolInputRow({
         )}
       </td>
 
-      {/* Remainder */}
+      {/* Remainder (first iteration) */}
       <td className="py-2 px-3 text-center">
         <span className={quantity > 0 ? 'text-gray-300' : 'text-gray-600'}>
           {quantity > 0 ? remainder : '-'}
