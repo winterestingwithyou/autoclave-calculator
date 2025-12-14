@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css'
 
-interface Props {
+type Props = {
   title: string;
   description: string;
   canonical?: string;
@@ -10,6 +10,7 @@ interface Props {
 const { title, description, canonical } = Astro.props;
 const siteUrl = 'https://autoclave.growtopia.tools';
 const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).toString();
+const currentPath = Astro.url.pathname;
 --- 
 
 <!doctype html>
@@ -44,32 +45,91 @@ const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).toString(
 	</head>
 	<body class="min-h-screen bg-gray-950 text-white">
 		<!-- Navigation -->
-		<nav class="bg-gray-900 border-b border-gray-800">
-			<div class="max-w-4xl mx-auto px-4 py-3">
-				<div class="flex items-center justify-between">
-					<a href="/" class="flex items-center gap-2 text-amber-400 font-bold text-lg hover:text-amber-300 transition-colors">
+		<nav class="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800">
+			<div class="max-w-4xl mx-auto px-3 sm:px-4">
+				<div class="flex items-center justify-between h-14 sm:h-16">
+					<!-- Logo -->
+					<a href="/" class="flex items-center gap-1.5 sm:gap-2 text-amber-400 font-bold text-sm sm:text-lg hover:text-amber-300 transition-colors">
 						<span>🔬</span>
-						<span>Autoclave Calculator</span>
+						<span class="hidden xs:inline">Autoclave</span>
+						<span class="xs:hidden">AC</span>
 					</a>
-					<div class="flex gap-4 text-sm">
-						<a href="/" class="text-gray-400 hover:text-white transition-colors">Home</a>
-						<a href="/autoclave" class="text-gray-400 hover:text-white transition-colors">Calculator</a>
-						<a href="/about" class="text-gray-400 hover:text-white transition-colors">About</a>
+					
+					<!-- Desktop Navigation -->
+					<div class="hidden sm:flex items-center gap-1">
+						<a 
+							href="/" 
+							class:list={[
+								"px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+								currentPath === "/" ? "bg-amber-500/10 text-amber-400" : "text-gray-400 hover:text-white hover:bg-gray-800"
+							]}
+						>
+							Home
+						</a>
+						<a 
+							href="/autoclave" 
+							class:list={[
+								"px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+								currentPath === "/autoclave" ? "bg-amber-500/10 text-amber-400" : "text-gray-400 hover:text-white hover:bg-gray-800"
+							]}
+						>
+							Calculator
+						</a>
+						<a 
+							href="/about" 
+							class:list={[
+								"px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+								currentPath === "/about" ? "bg-amber-500/10 text-amber-400" : "text-gray-400 hover:text-white hover:bg-gray-800"
+							]}
+						>
+							About
+						</a>
+					</div>
+					
+					<!-- Mobile Navigation -->
+					<div class="flex sm:hidden items-center gap-1">
+						<a 
+							href="/" 
+							class:list={[
+								"p-2 rounded-lg text-xs font-medium transition-colors",
+								currentPath === "/" ? "bg-amber-500/20 text-amber-400" : "text-gray-400 hover:text-white"
+							]}
+						>
+							🏠
+						</a>
+						<a 
+							href="/autoclave" 
+							class:list={[
+								"p-2 rounded-lg text-xs font-medium transition-colors",
+								currentPath === "/autoclave" ? "bg-amber-500/20 text-amber-400" : "text-gray-400 hover:text-white"
+							]}
+						>
+							🧮
+						</a>
+						<a 
+							href="/about" 
+							class:list={[
+								"p-2 rounded-lg text-xs font-medium transition-colors",
+								currentPath === "/about" ? "bg-amber-500/20 text-amber-400" : "text-gray-400 hover:text-white"
+							]}
+						>
+							ℹ️
+						</a>
 					</div>
 				</div>
 			</div>
 		</nav>
 		
 		<!-- Main Content -->
-		<main class="max-w-4xl mx-auto px-4 py-8">
+		<main class="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
 			<slot />
 		</main>
 		
 		<!-- Footer -->
 		<footer class="bg-gray-900 border-t border-gray-800 mt-auto">
-			<div class="max-w-4xl mx-auto px-4 py-6 text-center text-gray-500 text-sm">
-				<p>Growtopia Autoclave Calculator - Tool gratis untuk menghitung hasil autoclave</p>
-				<p class="mt-1">Data disimpan di browser Anda (IndexedDB). Tidak ada data yang dikirim ke server.</p>
+			<div class="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 text-center text-gray-500 text-xs sm:text-sm">
+				<p>Growtopia Autoclave Calculator</p>
+				<p class="mt-1 text-gray-600">Data tersimpan lokal di browser Anda</p>
 			</div>
 		</footer>
 	</body>
@@ -90,5 +150,24 @@ const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).toString(
 	
 	main {
 		flex: 1;
+	}
+	
+	/* Custom breakpoint for extra small screens */
+	@media (min-width: 360px) {
+		.xs\:inline {
+			display: inline;
+		}
+		.xs\:hidden {
+			display: none;
+		}
+	}
+	
+	@media (max-width: 359px) {
+		.hidden.xs\:inline {
+			display: none;
+		}
+		.xs\:hidden {
+			display: inline;
+		}
 	}
 </style>
