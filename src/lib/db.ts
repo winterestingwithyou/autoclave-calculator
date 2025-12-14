@@ -50,35 +50,76 @@ interface AutoclaveDB {
 }
 
 let dbInstance: IDBPDatabase<AutoclaveDB> | null = null;
+let dbPromise: Promise<IDBPDatabase<AutoclaveDB>> | null = null;
 
 /**
  * Initialize and get database instance
+ * Uses a promise cache to prevent multiple simultaneous connections
  */
 export async function getDB(): Promise<IDBPDatabase<AutoclaveDB>> {
-  if (dbInstance) return dbInstance;
+  // Return existing instance if available and connection is open
+  if (dbInstance) {
+    // Check if the database connection is still open
+    if (dbInstance.objectStoreNames.contains(STORE_TOOLS)) {
+      return dbInstance;
+    }
+    // Connection seems closed or invalid, reset
+    dbInstance = null;
+    dbPromise = null;
+  }
 
-  dbInstance = await openDB<AutoclaveDB>(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion) {
-      // Create tools store if it doesn't exist
-      if (!db.objectStoreNames.contains(STORE_TOOLS)) {
-        db.createObjectStore(STORE_TOOLS, { keyPath: 'tool' });
-      }
+  // Use promise cache to prevent race conditions
+  if (!dbPromise) {
+    dbPromise = openDB<AutoclaveDB>(DB_NAME, DB_VERSION, {
+      upgrade(db, oldVersion, _newVersion, transaction) {
+        // Create tools store if it doesn't exist
+        if (!db.objectStoreNames.contains(STORE_TOOLS)) {
+          db.createObjectStore(STORE_TOOLS, { keyPath: 'tool' });
+        }
 
-      // Create prices store if it doesn't exist
-      if (!db.objectStoreNames.contains(STORE_PRICES)) {
-        db.createObjectStore(STORE_PRICES, { keyPath: 'tool' });
-      }
-      
-      // Migration: if upgrading from v1, clear prices to reset schema
-      if (oldVersion < 2) {
-        // Old prices had different schema, clear them
-        const tx = db.transaction(STORE_PRICES, 'readwrite');
-        tx.objectStore(STORE_PRICES).clear();
-      }
-    },
-  });
+        // Create prices store if it doesn't exist
+        if (!db.objectStoreNames.contains(STORE_PRICES)) {
+          db.createObjectStore(STORE_PRICES, { keyPath: 'tool' });
+        }
+        
+        // Migration: if upgrading from v1, clear prices to reset schema
+        if (oldVersion > 0 && oldVersion < 2) {
+          // Old prices had different schema, clear them using the upgrade transaction
+          try {
+            transaction.objectStore(STORE_PRICES).clear();
+          } catch (e) {
+            console.warn('[DB] Could not clear prices store during migration:', e);
+          }
+        }
+      },
+      blocked() {
+        console.warn('Database upgrade blocked by another tab');
+      },
+      blocking() {
+        // Close connection to allow other tabs to upgrade
+        if (dbInstance) {
+          dbInstance.close();
+          dbInstance = null;
+          dbPromise = null;
+        }
+      },
+      terminated() {
+        // Connection was terminated unexpectedly
+        dbInstance = null;
+        dbPromise = null;
+      },
+    });
+  }
 
-  return dbInstance;
+  try {
+    dbInstance = await dbPromise;
+    return dbInstance;
+  } catch (error) {
+    // Reset on error
+    dbPromise = null;
+    dbInstance = null;
+    throw error;
+  }
 }
 
 /**
@@ -89,6 +130,7 @@ export async function initializeDB(): Promise<void> {
   
   // Check if tools store is empty
   const toolsCount = await db.count(STORE_TOOLS);
+  
   if (toolsCount === 0) {
     const tx = db.transaction(STORE_TOOLS, 'readwrite');
     for (const tool of TOOL_NAMES) {
@@ -99,6 +141,7 @@ export async function initializeDB(): Promise<void> {
 
   // Check if prices store is empty or needs initialization
   const pricesCount = await db.count(STORE_PRICES);
+  
   if (pricesCount === 0) {
     const tx = db.transaction(STORE_PRICES, 'readwrite');
     for (const tool of TOOL_NAMES) {

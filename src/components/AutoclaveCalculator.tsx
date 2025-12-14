@@ -46,16 +46,26 @@ export function AutoclaveCalculator() {
   const [activeTab, setActiveTab] = useState<'input' | 'result'>('input');
   const [expandedTool, setExpandedTool] = useState<ToolType | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
+    // Prevent double initialization (React Strict Mode)
+    if (hasInitialized) return;
+    
+    let isMounted = true;
     async function loadData() {
       try {
         await initializeDB();
+        
+        if (!isMounted) return;
+        
         const storedQuantities = await getAllToolQuantities();
         const storedPrices = await getAllToolPrices();
         const storedMinRemainders = await getAllMinRemainders();
         const storedAutoRepeats = await getAllAutoRepeats();
 
+        if (!isMounted) return;
+        
         const qMap = new Map<ToolType, number>();
         for (const { tool, quantity } of storedQuantities) {
           qMap.set(tool, quantity);
@@ -64,18 +74,26 @@ export function AutoclaveCalculator() {
         for (const { tool, priceValue, priceType } of storedPrices) {
           pMap.set(tool, { value: priceValue, type: priceType });
         }
+        
         setQuantities(qMap);
         setPrices(pMap);
         setMinRemainders(storedMinRemainders);
         setAutoRepeats(storedAutoRepeats);
+        setHasInitialized(true);
       } catch (error) {
         console.error('Failed to load data:', error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
     loadData();
-  }, []);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [hasInitialized]);
 
   const handleQuantityChange = useCallback(
     async (tool: ToolType, quantity: number) => {
@@ -87,7 +105,7 @@ export function AutoclaveCalculator() {
       try {
         await setToolQuantity(tool, quantity);
       } catch (e) {
-        console.error(e);
+        console.error('Failed to save quantity:', e);
       }
     },
     []
@@ -103,7 +121,7 @@ export function AutoclaveCalculator() {
       try {
         await setToolPrice(tool, value, type);
       } catch (e) {
-        console.error(e);
+        console.error('Failed to save price:', e);
       }
     },
     []
