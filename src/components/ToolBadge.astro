@@ -1,21 +1,31 @@
 ---
 /**
  * Tool Badge Component
- * Displays a surgical tool with its color indicator
+ * Displays a surgical tool with its image and color indicator
  */
 
-interface Props {
+type Props = {
   name: string;
   color: string;
+  image?: string;
 }
 
-const { name, color } = Astro.props;
+const { name, color, image } = Astro.props;
 ---
 
-<div class="flex items-center gap-2 bg-gray-800 px-3 py-2 rounded border border-gray-700">
-  <span 
-    class="w-3 h-3 rounded-sm border border-gray-600" 
-    style={`background-color: ${color}`}
-  ></span>
-  <span class="text-sm text-gray-300">{name}</span>
+<div class="flex items-center gap-2 bg-neutral-800/80 px-3 py-2 rounded-lg border border-neutral-700/50 hover:border-neutral-600 transition-colors">
+  {image ? (
+    <img 
+      src={image} 
+      alt={name}
+      class="w-6 h-6 object-contain" 
+      loading="lazy"
+    />
+  ) : (
+    <span 
+      class="w-4 h-4 rounded-sm" 
+      style={`background-color: ${color}`}
+    ></span>
+  )}
+  <span class="text-sm text-neutral-300">{name}</span>
 </div>

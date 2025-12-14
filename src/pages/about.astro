@@ -1,19 +1,30 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { TOOL_METADATA, AUTOCLAVE_IMAGE } from '../lib/tools';
 
 const title = 'About - Growtopia Autoclave Calculator';
 const description = 'Tentang Growtopia Autoclave Calculator. Tool gratis untuk menghitung hasil autoclave surgical tools dan membandingkan nilai WL.';
+
+const tools = Object.values(TOOL_METADATA);
 ---
 
 <Layout title={title} description={description}>
-	<div class="max-w-2xl mx-auto px-4">
+	<div class="max-w-2xl mx-auto px-2 sm:px-4">
 		<!-- Page Header -->
-		<div class="text-center mb-10">
-			<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm mb-4">
+		<div class="text-center mb-8 sm:mb-10">
+			<!-- Autoclave Image -->
+			<div class="mb-3 sm:mb-4">
+				<img 
+					src={AUTOCLAVE_IMAGE} 
+					alt="Autoclave Machine"
+					class="w-14 h-14 sm:w-16 sm:h-16 mx-auto object-contain"
+				/>
+			</div>
+			<div class="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs sm:text-sm mb-3 sm:mb-4">
 				<span>📖</span>
 				<span>About</span>
 			</div>
-			<h1 class="text-3xl md:text-4xl font-bold text-white">
+			<h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
 				Tentang <span class="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Project Ini</span>
 			</h1>
 		</div>
@@ -169,65 +180,24 @@ const description = 'Tentang Growtopia Autoclave Calculator. Tool gratis untuk m
 			</section>
 
 			<!-- Tool List -->
-			<section class="group relative overflow-hidden rounded-2xl bg-neutral-900/50 border border-neutral-800 p-5 hover:border-cyan-500/20 transition-colors">
+			<section class="group relative overflow-hidden rounded-2xl bg-neutral-900/50 border border-neutral-800 p-4 sm:p-5 hover:border-cyan-500/20 transition-colors">
 				<div class="relative">
 					<div class="flex items-center gap-3 mb-4">
 						<span class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-xl">🔧</span>
 						<h2 class="text-lg font-semibold text-white">13 Surgical Tools</h2>
 					</div>
 					<div class="grid grid-cols-2 gap-2 text-sm">
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-yellow-400"></span>
-							Surgical Sponge
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-amber-700"></span>
-							Surgical Splint
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-							Surgical Antiseptic
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-red-400"></span>
-							Surgical Antibiotics
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-purple-400"></span>
-							Surgical Anesthetic
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-gray-400"></span>
-							Surgical Scalpel
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-green-500"></span>
-							Surgical Stitches
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-blue-500"></span>
-							Surgical Lab Kit
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-slate-500"></span>
-							Surgical Clamp
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-yellow-600"></span>
-							Surgical Pins
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-red-600"></span>
-							Surgical Transfusion
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-							Surgical Ultrasound
-						</div>
-						<div class="flex items-center gap-2 text-neutral-400">
-							<span class="w-2 h-2 rounded-full bg-orange-500"></span>
-							Surgical Defibrillator
-						</div>
+						{tools.map((tool) => (
+							<div class="flex items-center gap-2 text-neutral-400">
+								<img 
+									src={tool.image} 
+									alt={tool.shortName}
+									class="w-5 h-5 object-contain"
+									loading="lazy"
+								/>
+								<span class="truncate">{tool.name}</span>
+							</div>
+						))}
 					</div>
 				</div>
 			</section>

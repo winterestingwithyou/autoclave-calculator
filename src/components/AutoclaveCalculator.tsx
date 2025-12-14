@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { TOOL_NAMES, type ToolType } from '../lib/tools';
+import { TOOL_NAMES, AUTOCLAVE_IMAGE, type ToolType } from '../lib/tools';
 import { calculateFullAutoclave, type ToolInput } from '../lib/autoclave';
 import {
   calculateValueDifference,
@@ -218,14 +218,22 @@ export function AutoclaveCalculator() {
         <div className="absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative">
           <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
-            <div className="min-w-0">
-              <p className="text-neutral-400 text-[10px] sm:text-xs uppercase tracking-wider mb-0.5 sm:mb-1">
-                Total Nilai
-              </p>
-              <p className="text-xl sm:text-2xl font-bold text-white truncate">
-                {valueCalc.beforeValue.toFixed(1)}{' '}
-                <span className="text-amber-400">WL</span>
-              </p>
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              {/* Autoclave Image */}
+              <img 
+                src={AUTOCLAVE_IMAGE} 
+                alt="Autoclave"
+                className="w-10 h-10 sm:w-12 sm:h-12 object-contain shrink-0"
+              />
+              <div className="min-w-0">
+                <p className="text-neutral-400 text-[10px] sm:text-xs uppercase tracking-wider mb-0.5 sm:mb-1">
+                  Total Nilai
+                </p>
+                <p className="text-xl sm:text-2xl font-bold text-white truncate">
+                  {valueCalc.beforeValue.toFixed(1)}{' '}
+                  <span className="text-amber-400">WL</span>
+                </p>
+              </div>
             </div>
             {totalAutoclaves > 0 && (
               <div

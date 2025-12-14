@@ -59,14 +59,15 @@ export function MobileToolCard({
         onClick={onToggleExpand}
         className="w-full p-3 sm:p-4 flex items-center gap-2 sm:gap-3 text-left"
       >
-        {/* Tool Color & Icon */}
+        {/* Tool Image */}
         <div 
-          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
-          style={{ backgroundColor: `${metadata.color}20`, borderColor: metadata.color }}
+          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 bg-neutral-800/50"
         >
-          <div 
-            className="w-4 h-4 sm:w-5 sm:h-5 rounded-md"
-            style={{ backgroundColor: metadata.color }}
+          <img 
+            src={metadata.image} 
+            alt={metadata.shortName}
+            className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
+            loading="lazy"
           />
         </div>
 

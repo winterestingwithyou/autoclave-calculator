@@ -130,9 +130,11 @@ export function ResultsView({ calculation, valueCalc, breakdown }: ResultsViewPr
             .filter((s) => s.totalToolsUsed > 0 || s.totalReceived > 0)
             .map((summary) => (
               <div key={summary.tool} className="text-xs sm:text-sm flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span 
-                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm shrink-0"
-                  style={{ backgroundColor: TOOL_METADATA[summary.tool].color }}
+                <img 
+                  src={TOOL_METADATA[summary.tool].image}
+                  alt={TOOL_METADATA[summary.tool].shortName}
+                  className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0"
+                  loading="lazy"
                 />
                 <span className="text-neutral-300 font-medium truncate max-w-[60px] sm:max-w-none">
                   {TOOL_METADATA[summary.tool].shortName}:
@@ -176,14 +178,15 @@ function ToolResultRow({ item }: { item: ToolValueBreakdown }) {
 
   return (
     <div className="p-2.5 sm:p-3 rounded-xl bg-neutral-900/50 border border-neutral-800 flex items-center gap-2 sm:gap-3">
-      {/* Color indicator */}
+      {/* Tool image */}
       <div 
-        className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0"
-        style={{ backgroundColor: `${metadata.color}15` }}
+        className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 bg-neutral-800/50"
       >
-        <div 
-          className="w-3 h-3 sm:w-4 sm:h-4 rounded-md"
-          style={{ backgroundColor: metadata.color }}
+        <img 
+          src={metadata.image}
+          alt={metadata.shortName}
+          className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
+          loading="lazy"
         />
       </div>
 
