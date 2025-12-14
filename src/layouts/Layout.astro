@@ -8,7 +8,7 @@ type Props = {
 }
 
 const { title, description, canonical } = Astro.props;
-const siteUrl = 'https://autoclave.growtopia.tools';
+const siteUrl = 'https://autoclave-calculator.vercel.app';
 const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).toString();
 const currentPath = Astro.url.pathname;
 --- 
