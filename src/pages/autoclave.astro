@@ -1,22 +1,24 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { AutoclaveCalculator } from '../components/AutoclaveCalculator';
+import Layout from "../layouts/Layout.astro";
+import { AutoclaveCalculator } from "../components/AutoclaveCalculator";
 
-const title = 'Calculator - Growtopia Autoclave Calculator';
-const description = 'Kalkulator interaktif untuk menghitung hasil autoclave surgical tools di Growtopia. Masukkan jumlah tools dan harga untuk melihat hasil konversi.';
+const title = "Calculator - Growtopia Autoclave Calculator";
+const description =
+  "Kalkulator interaktif untuk menghitung hasil autoclave surgical tools di Growtopia. Masukkan jumlah tools dan harga untuk melihat hasil konversi.";
 ---
 
 <Layout title={title} description={description}>
-	<!-- Page Header -->
-	<div class="mb-6">
-		<h1 class="text-2xl md:text-3xl font-bold text-amber-400 mb-2">
-			🧮 Autoclave Calculator
-		</h1>
-		<p class="text-gray-400">
-			Masukkan jumlah tools dan harga per tool. Data akan tersimpan otomatis di browser.
-		</p>
-	</div>
+  <!-- Page Header -->
+  <div class="mb-6">
+    <h1 class="mb-2 text-2xl font-bold text-amber-400 md:text-3xl">
+      🧮 Autoclave Calculator
+    </h1>
+    <p class="text-gray-400">
+      Masukkan jumlah tools dan harga per tool. Data akan tersimpan otomatis di
+      browser.
+    </p>
+  </div>
 
-	<!-- Calculator Component (React - client:load) -->
-	<AutoclaveCalculator client:load />
+  <!-- Calculator Component (React - client:load) -->
+  <AutoclaveCalculator client:load />
 </Layout>

@@ -1,21 +1,21 @@
 /**
  * IndexedDB Wrapper for Growtopia Autoclave Calculator
- * 
+ *
  * Uses `idb` library for cleaner IndexedDB API
  * Stores tool quantities and prices client-side only
  */
 
-import { openDB, type IDBPDatabase } from 'idb';
-import type { ToolType } from './tools';
-import { TOOL_NAMES } from './tools';
-import type { PriceType } from './pricing';
+import { openDB, type IDBPDatabase } from "idb";
+import type { ToolType } from "./tools";
+import { TOOL_NAMES } from "./tools";
+import type { PriceType } from "./pricing";
 
-const DB_NAME = 'autoclave-db';
+const DB_NAME = "autoclave-db";
 const DB_VERSION = 2; // Bumped version for new price schema
 
 // Object store names
-const STORE_TOOLS = 'tools';
-const STORE_PRICES = 'prices';
+const STORE_TOOLS = "tools";
+const STORE_PRICES = "prices";
 
 /**
  * Tool state stored in IndexedDB
@@ -74,26 +74,29 @@ export async function getDB(): Promise<IDBPDatabase<AutoclaveDB>> {
       upgrade(db, oldVersion, _newVersion, transaction) {
         // Create tools store if it doesn't exist
         if (!db.objectStoreNames.contains(STORE_TOOLS)) {
-          db.createObjectStore(STORE_TOOLS, { keyPath: 'tool' });
+          db.createObjectStore(STORE_TOOLS, { keyPath: "tool" });
         }
 
         // Create prices store if it doesn't exist
         if (!db.objectStoreNames.contains(STORE_PRICES)) {
-          db.createObjectStore(STORE_PRICES, { keyPath: 'tool' });
+          db.createObjectStore(STORE_PRICES, { keyPath: "tool" });
         }
-        
+
         // Migration: if upgrading from v1, clear prices to reset schema
         if (oldVersion > 0 && oldVersion < 2) {
           // Old prices had different schema, clear them using the upgrade transaction
           try {
             transaction.objectStore(STORE_PRICES).clear();
           } catch (e) {
-            console.warn('[DB] Could not clear prices store during migration:', e);
+            console.warn(
+              "[DB] Could not clear prices store during migration:",
+              e,
+            );
           }
         }
       },
       blocked() {
-        console.warn('Database upgrade blocked by another tab');
+        console.warn("Database upgrade blocked by another tab");
       },
       blocking() {
         // Close connection to allow other tabs to upgrade
@@ -127,12 +130,12 @@ export async function getDB(): Promise<IDBPDatabase<AutoclaveDB>> {
  */
 export async function initializeDB(): Promise<void> {
   const db = await getDB();
-  
+
   // Check if tools store is empty
   const toolsCount = await db.count(STORE_TOOLS);
-  
+
   if (toolsCount === 0) {
-    const tx = db.transaction(STORE_TOOLS, 'readwrite');
+    const tx = db.transaction(STORE_TOOLS, "readwrite");
     for (const tool of TOOL_NAMES) {
       await tx.store.put({ tool, quantity: 0 });
     }
@@ -141,11 +144,11 @@ export async function initializeDB(): Promise<void> {
 
   // Check if prices store is empty or needs initialization
   const pricesCount = await db.count(STORE_PRICES);
-  
+
   if (pricesCount === 0) {
-    const tx = db.transaction(STORE_PRICES, 'readwrite');
+    const tx = db.transaction(STORE_PRICES, "readwrite");
     for (const tool of TOOL_NAMES) {
-      await tx.store.put({ tool, priceValue: 0, priceType: 'wl-each' });
+      await tx.store.put({ tool, priceValue: 0, priceType: "wl-each" });
     }
     await tx.done;
   }
@@ -173,7 +176,10 @@ export async function getToolQuantity(tool: ToolType): Promise<number> {
 /**
  * Set single tool quantity
  */
-export async function setToolQuantity(tool: ToolType, quantity: number): Promise<void> {
+export async function setToolQuantity(
+  tool: ToolType,
+  quantity: number,
+): Promise<void> {
   const db = await getDB();
   await db.put(STORE_TOOLS, { tool, quantity: Math.max(0, quantity) });
 }
@@ -181,11 +187,16 @@ export async function setToolQuantity(tool: ToolType, quantity: number): Promise
 /**
  * Set all tool quantities at once
  */
-export async function setAllToolQuantities(states: StoredToolState[]): Promise<void> {
+export async function setAllToolQuantities(
+  states: StoredToolState[],
+): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction(STORE_TOOLS, 'readwrite');
+  const tx = db.transaction(STORE_TOOLS, "readwrite");
   for (const state of states) {
-    await tx.store.put({ tool: state.tool, quantity: Math.max(0, state.quantity) });
+    await tx.store.put({
+      tool: state.tool,
+      quantity: Math.max(0, state.quantity),
+    });
   }
   await tx.done;
 }
@@ -195,7 +206,7 @@ export async function setAllToolQuantities(states: StoredToolState[]): Promise<v
  */
 export async function resetAllToolQuantities(): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction(STORE_TOOLS, 'readwrite');
+  const tx = db.transaction(STORE_TOOLS, "readwrite");
   for (const tool of TOOL_NAMES) {
     await tx.store.put({ tool, quantity: 0 });
   }
@@ -214,7 +225,7 @@ export async function getAllToolPrices(): Promise<StoredToolPrice[]> {
   return prices.map((p) => ({
     tool: p.tool,
     priceValue: p.priceValue ?? 0,
-    priceType: p.priceType ?? 'wl-each',
+    priceType: p.priceType ?? "wl-each",
   }));
 }
 
@@ -227,7 +238,7 @@ export async function getToolPrice(tool: ToolType): Promise<StoredToolPrice> {
   return {
     tool,
     priceValue: price?.priceValue ?? 0,
-    priceType: price?.priceType ?? 'wl-each',
+    priceType: price?.priceType ?? "wl-each",
   };
 }
 
@@ -235,29 +246,31 @@ export async function getToolPrice(tool: ToolType): Promise<StoredToolPrice> {
  * Set single tool price with type
  */
 export async function setToolPrice(
-  tool: ToolType, 
-  priceValue: number, 
-  priceType: PriceType
+  tool: ToolType,
+  priceValue: number,
+  priceType: PriceType,
 ): Promise<void> {
   const db = await getDB();
-  await db.put(STORE_PRICES, { 
-    tool, 
+  await db.put(STORE_PRICES, {
+    tool,
     priceValue: Math.max(0, priceValue),
-    priceType 
+    priceType,
   });
 }
 
 /**
  * Set all tool prices at once
  */
-export async function setAllToolPrices(prices: StoredToolPrice[]): Promise<void> {
+export async function setAllToolPrices(
+  prices: StoredToolPrice[],
+): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction(STORE_PRICES, 'readwrite');
+  const tx = db.transaction(STORE_PRICES, "readwrite");
   for (const price of prices) {
-    await tx.store.put({ 
-      tool: price.tool, 
+    await tx.store.put({
+      tool: price.tool,
       priceValue: Math.max(0, price.priceValue),
-      priceType: price.priceType 
+      priceType: price.priceType,
     });
   }
   await tx.done;
@@ -268,9 +281,9 @@ export async function setAllToolPrices(prices: StoredToolPrice[]): Promise<void>
  */
 export async function resetAllToolPrices(): Promise<void> {
   const db = await getDB();
-  const tx = db.transaction(STORE_PRICES, 'readwrite');
+  const tx = db.transaction(STORE_PRICES, "readwrite");
   for (const tool of TOOL_NAMES) {
-    await tx.store.put({ tool, priceValue: 0, priceType: 'wl-each' });
+    await tx.store.put({ tool, priceValue: 0, priceType: "wl-each" });
   }
   await tx.done;
 }
@@ -302,7 +315,7 @@ export async function exportData(): Promise<{
 
 // ============ SETTINGS (using localStorage for simplicity) ============
 
-const MIN_REMAINDER_KEY = 'autoclave-min-remainders';
+const MIN_REMAINDER_KEY = "autoclave-min-remainders";
 
 /**
  * Min remainder setting per tool (stored as JSON object)
@@ -323,7 +336,8 @@ export async function getAllMinRemainders(): Promise<ToolMinRemainders> {
       const result: ToolMinRemainders = {};
       for (const tool of TOOL_NAMES) {
         const value = parsed[tool];
-        result[tool] = typeof value === 'number' && !isNaN(value) ? Math.max(0, value) : 0;
+        result[tool] =
+          typeof value === "number" && !isNaN(value) ? Math.max(0, value) : 0;
       }
       return result;
     }
@@ -349,7 +363,10 @@ export async function getMinRemainder(tool: ToolType): Promise<number> {
 /**
  * Set minimum remainder for a specific tool
  */
-export async function setMinRemainder(tool: ToolType, value: number): Promise<void> {
+export async function setMinRemainder(
+  tool: ToolType,
+  value: number,
+): Promise<void> {
   try {
     const all = await getAllMinRemainders();
     all[tool] = Math.max(0, value);
@@ -362,12 +379,15 @@ export async function setMinRemainder(tool: ToolType, value: number): Promise<vo
 /**
  * Set all minimum remainders at once
  */
-export async function setAllMinRemainders(values: ToolMinRemainders): Promise<void> {
+export async function setAllMinRemainders(
+  values: ToolMinRemainders,
+): Promise<void> {
   try {
     const sanitized: ToolMinRemainders = {};
     for (const tool of TOOL_NAMES) {
       const value = values[tool];
-      sanitized[tool] = typeof value === 'number' && !isNaN(value) ? Math.max(0, value) : 0;
+      sanitized[tool] =
+        typeof value === "number" && !isNaN(value) ? Math.max(0, value) : 0;
     }
     localStorage.setItem(MIN_REMAINDER_KEY, JSON.stringify(sanitized));
   } catch {
@@ -388,7 +408,7 @@ export async function resetAllMinRemainders(): Promise<void> {
 
 // ============ AUTO REPEAT SETTINGS ============
 
-const AUTO_REPEAT_KEY = 'autoclave-auto-repeats';
+const AUTO_REPEAT_KEY = "autoclave-auto-repeats";
 
 /**
  * Auto repeat setting per tool (stored as JSON object)
@@ -409,7 +429,7 @@ export async function getAllAutoRepeats(): Promise<ToolAutoRepeats> {
       const result: ToolAutoRepeats = {};
       for (const tool of TOOL_NAMES) {
         const value = parsed[tool];
-        result[tool] = typeof value === 'boolean' ? value : true; // Default true
+        result[tool] = typeof value === "boolean" ? value : true; // Default true
       }
       return result;
     }
@@ -435,7 +455,10 @@ export async function getAutoRepeat(tool: ToolType): Promise<boolean> {
 /**
  * Set auto repeat for a specific tool
  */
-export async function setAutoRepeat(tool: ToolType, value: boolean): Promise<void> {
+export async function setAutoRepeat(
+  tool: ToolType,
+  value: boolean,
+): Promise<void> {
   try {
     const all = await getAllAutoRepeats();
     all[tool] = value;
@@ -448,12 +471,14 @@ export async function setAutoRepeat(tool: ToolType, value: boolean): Promise<voi
 /**
  * Set all auto repeats at once
  */
-export async function setAllAutoRepeats(values: ToolAutoRepeats): Promise<void> {
+export async function setAllAutoRepeats(
+  values: ToolAutoRepeats,
+): Promise<void> {
   try {
     const sanitized: ToolAutoRepeats = {};
     for (const tool of TOOL_NAMES) {
       const value = values[tool];
-      sanitized[tool] = typeof value === 'boolean' ? value : true;
+      sanitized[tool] = typeof value === "boolean" ? value : true;
     }
     localStorage.setItem(AUTO_REPEAT_KEY, JSON.stringify(sanitized));
   } catch {

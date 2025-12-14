@@ -3,15 +3,15 @@
  * Mobile-first, aesthetic design with great UX
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { TOOL_NAMES, AUTOCLAVE_IMAGE, type ToolType } from '../lib/tools';
-import { calculateFullAutoclave, type ToolInput } from '../lib/autoclave';
+import { useState, useEffect, useCallback } from "react";
+import { TOOL_NAMES, AUTOCLAVE_IMAGE, type ToolType } from "../lib/tools";
+import { calculateFullAutoclave, type ToolInput } from "../lib/autoclave";
 import {
   calculateValueDifference,
   getValueBreakdown,
   createPriceMap,
   type PriceType,
-} from '../lib/pricing';
+} from "../lib/pricing";
 import {
   initializeDB,
   getAllToolQuantities,
@@ -28,9 +28,9 @@ import {
   resetAllAutoRepeats,
   type ToolMinRemainders,
   type ToolAutoRepeats,
-} from '../lib/db';
-import { MobileToolCard } from './MobileToolCard';
-import { ResultsView } from './ResultsView';
+} from "../lib/db";
+import { MobileToolCard } from "./MobileToolCard";
+import { ResultsView } from "./ResultsView";
 
 interface PriceData {
   value: number;
@@ -38,12 +38,14 @@ interface PriceData {
 }
 
 export function AutoclaveCalculator() {
-  const [quantities, setQuantities] = useState<Map<ToolType, number>>(new Map());
+  const [quantities, setQuantities] = useState<Map<ToolType, number>>(
+    new Map(),
+  );
   const [prices, setPrices] = useState<Map<ToolType, PriceData>>(new Map());
   const [minRemainders, setMinRemainders] = useState<ToolMinRemainders>({});
   const [autoRepeats, setAutoRepeats] = useState<ToolAutoRepeats>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'input' | 'result'>('input');
+  const [activeTab, setActiveTab] = useState<"input" | "result">("input");
   const [expandedTool, setExpandedTool] = useState<ToolType | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -51,21 +53,21 @@ export function AutoclaveCalculator() {
   useEffect(() => {
     // Prevent double initialization (React Strict Mode)
     if (hasInitialized) return;
-    
+
     let isMounted = true;
     async function loadData() {
       try {
         await initializeDB();
-        
+
         if (!isMounted) return;
-        
+
         const storedQuantities = await getAllToolQuantities();
         const storedPrices = await getAllToolPrices();
         const storedMinRemainders = await getAllMinRemainders();
         const storedAutoRepeats = await getAllAutoRepeats();
 
         if (!isMounted) return;
-        
+
         const qMap = new Map<ToolType, number>();
         for (const { tool, quantity } of storedQuantities) {
           qMap.set(tool, quantity);
@@ -74,14 +76,14 @@ export function AutoclaveCalculator() {
         for (const { tool, priceValue, priceType } of storedPrices) {
           pMap.set(tool, { value: priceValue, type: priceType });
         }
-        
+
         setQuantities(qMap);
         setPrices(pMap);
         setMinRemainders(storedMinRemainders);
         setAutoRepeats(storedAutoRepeats);
         setHasInitialized(true);
       } catch (error) {
-        console.error('Failed to load data:', error);
+        console.error("Failed to load data:", error);
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -89,7 +91,7 @@ export function AutoclaveCalculator() {
       }
     }
     loadData();
-    
+
     return () => {
       isMounted = false;
     };
@@ -105,10 +107,10 @@ export function AutoclaveCalculator() {
       try {
         await setToolQuantity(tool, quantity);
       } catch (e) {
-        console.error('Failed to save quantity:', e);
+        console.error("Failed to save quantity:", e);
       }
     },
-    []
+    [],
   );
 
   const handlePriceChange = useCallback(
@@ -121,10 +123,10 @@ export function AutoclaveCalculator() {
       try {
         await setToolPrice(tool, value, type);
       } catch (e) {
-        console.error('Failed to save price:', e);
+        console.error("Failed to save price:", e);
       }
     },
-    []
+    [],
   );
 
   const handleMinRemainderChange = useCallback(
@@ -136,7 +138,7 @@ export function AutoclaveCalculator() {
         console.error(e);
       }
     },
-    []
+    [],
   );
 
   const handleAutoRepeatChange = useCallback(
@@ -148,11 +150,11 @@ export function AutoclaveCalculator() {
         console.error(e);
       }
     },
-    []
+    [],
   );
 
   const handleResetAll = useCallback(async () => {
-    if (!confirm('Reset semua data?')) return;
+    if (!confirm("Reset semua data?")) return;
     try {
       await Promise.all([
         resetAllToolQuantities(),
@@ -165,7 +167,7 @@ export function AutoclaveCalculator() {
       const newMin: ToolMinRemainders = {};
       const newAuto: ToolAutoRepeats = {};
       TOOL_NAMES.forEach((t) => {
-        newPrices.set(t, { value: 0, type: 'wl-each' });
+        newPrices.set(t, { value: 0, type: "wl-each" });
         newMin[t] = 0;
         newAuto[t] = true;
       });
@@ -187,87 +189,91 @@ export function AutoclaveCalculator() {
   const calculation = calculateFullAutoclave(inputs);
   const priceMap = createPriceMap(
     TOOL_NAMES.map((tool) => {
-      const p = prices.get(tool) || { value: 0, type: 'wl-each' as PriceType };
+      const p = prices.get(tool) || { value: 0, type: "wl-each" as PriceType };
       return { tool, priceValue: p.value, priceType: p.type };
-    })
+    }),
   );
   const valueCalc = calculateValueDifference(calculation, priceMap);
   const breakdown = getValueBreakdown(calculation, priceMap);
   const totalTools = inputs.reduce((sum, i) => sum + i.quantity, 0);
   const totalAutoclaves = calculation.results.reduce(
     (sum, r) => sum + r.autoclaveCount,
-    0
+    0,
   );
   const toolsWithQuantity = inputs.filter((i) => i.quantity > 0).length;
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
-          <p className="text-neutral-400 text-sm">Memuat data...</p>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500/30 border-t-amber-500" />
+          <p className="text-sm text-neutral-400">Memuat data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-lg mx-auto px-2 sm:px-4 pb-24">
+    <div className="mx-auto max-w-lg px-2 pb-24 sm:px-4">
       {/* Hero Stats Card */}
-      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 p-3 sm:p-5 mb-4 sm:mb-6">
-        <div className="absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="relative mb-4 overflow-hidden rounded-xl border border-amber-500/20 bg-linear-to-br from-amber-500/10 via-orange-500/5 to-transparent p-3 sm:mb-6 sm:rounded-2xl sm:p-5">
+        <div className="absolute top-0 right-0 h-24 w-24 translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/10 blur-3xl sm:h-32 sm:w-32" />
         <div className="relative">
-          <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="mb-3 flex items-center justify-between gap-2 sm:mb-4">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               {/* Autoclave Image */}
-              <img 
-                src={AUTOCLAVE_IMAGE} 
+              <img
+                src={AUTOCLAVE_IMAGE}
                 alt="Autoclave"
-                className="w-10 h-10 sm:w-12 sm:h-12 object-contain shrink-0"
+                className="h-10 w-10 shrink-0 object-contain sm:h-12 sm:w-12"
               />
               <div className="min-w-0">
-                <p className="text-neutral-400 text-[10px] sm:text-xs uppercase tracking-wider mb-0.5 sm:mb-1">
+                <p className="mb-0.5 text-[10px] tracking-wider text-neutral-400 uppercase sm:mb-1 sm:text-xs">
                   Total Nilai
                 </p>
-                <p className="text-xl sm:text-2xl font-bold text-white truncate">
-                  {valueCalc.beforeValue.toFixed(1)}{' '}
+                <p className="truncate text-xl font-bold text-white sm:text-2xl">
+                  {valueCalc.beforeValue.toFixed(1)}{" "}
                   <span className="text-amber-400">WL</span>
                 </p>
               </div>
             </div>
             {totalAutoclaves > 0 && (
               <div
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium shrink-0 ${
+                className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm ${
                   valueCalc.difference >= 0
-                    ? 'bg-emerald-500/20 text-emerald-400'
-                    : 'bg-red-500/20 text-red-400'
+                    ? "bg-emerald-500/20 text-emerald-400"
+                    : "bg-red-500/20 text-red-400"
                 }`}
               >
-                {valueCalc.difference >= 0 ? '+' : ''}
+                {valueCalc.difference >= 0 ? "+" : ""}
                 {valueCalc.difference.toFixed(2)}
               </div>
             )}
           </div>
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <MiniStat label="Tools" value={totalTools} />
-            <MiniStat label="Autoclave" value={`${totalAutoclaves}x`} highlight />
+            <MiniStat
+              label="Autoclave"
+              value={`${totalAutoclaves}x`}
+              highlight
+            />
             <MiniStat label="Iterasi" value={calculation.iterations} />
           </div>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-1 sm:gap-2 p-1 bg-neutral-900/80 backdrop-blur-lg rounded-xl mb-3 sm:mb-4 sticky top-2 z-20">
+      <div className="sticky top-2 z-20 mb-3 flex gap-1 rounded-xl bg-neutral-900/80 p-1 backdrop-blur-lg sm:mb-4 sm:gap-2">
         <TabButton
-          active={activeTab === 'input'}
-          onClick={() => setActiveTab('input')}
+          active={activeTab === "input"}
+          onClick={() => setActiveTab("input")}
           icon="📝"
         >
           Input
         </TabButton>
         <TabButton
-          active={activeTab === 'result'}
-          onClick={() => setActiveTab('result')}
+          active={activeTab === "result"}
+          onClick={() => setActiveTab("result")}
           icon="📊"
           badge={totalAutoclaves > 0 ? totalAutoclaves : undefined}
         >
@@ -275,21 +281,19 @@ export function AutoclaveCalculator() {
         </TabButton>
       </div>
 
-      {activeTab === 'input' ? (
+      {activeTab === "input" ? (
         <div className="space-y-2 sm:space-y-3">
           {/* Help text */}
-          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-neutral-500 px-1">
+          <div className="flex items-center gap-1.5 px-1 text-[10px] text-neutral-500 sm:gap-2 sm:text-xs">
             <span>💡</span>
-            <span>
-              Tap untuk expand • {toolsWithQuantity}/13 diisi
-            </span>
+            <span>Tap untuk expand • {toolsWithQuantity}/13 diisi</span>
           </div>
 
           {/* Tool Cards */}
           {TOOL_NAMES.map((tool) => {
             const priceData = prices.get(tool) || {
               value: 0,
-              type: 'wl-each' as PriceType,
+              type: "wl-each" as PriceType,
             };
             const qty = quantities.get(tool) || 0;
             const summary = calculation.summary.find((s) => s.tool === tool);
@@ -318,18 +322,20 @@ export function AutoclaveCalculator() {
           {/* Settings Toggle */}
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="w-full py-2 sm:py-3 text-neutral-500 text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 hover:text-neutral-300 transition-colors"
+            className="flex w-full items-center justify-center gap-1.5 py-2 text-xs text-neutral-500 transition-colors hover:text-neutral-300 sm:gap-2 sm:py-3 sm:text-sm"
           >
             <span>⚙️</span>
-            <span>{showSettings ? 'Sembunyikan' : 'Tampilkan'} Setting</span>
+            <span>{showSettings ? "Sembunyikan" : "Tampilkan"} Setting</span>
           </button>
 
           {showSettings && (
-            <div className="p-3 sm:p-4 rounded-xl bg-neutral-900/50 border border-neutral-800 space-y-2 sm:space-y-3">
-              <p className="text-xs sm:text-sm font-medium text-neutral-300">Reset Data</p>
+            <div className="space-y-2 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 sm:space-y-3 sm:p-4">
+              <p className="text-xs font-medium text-neutral-300 sm:text-sm">
+                Reset Data
+              </p>
               <button
                 onClick={handleResetAll}
-                className="w-full py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs sm:text-sm font-medium hover:bg-red-500/20 transition-colors"
+                className="w-full rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20 sm:px-4 sm:py-2.5 sm:text-sm"
               >
                 🗑️ Reset Semua
               </button>
@@ -345,14 +351,14 @@ export function AutoclaveCalculator() {
       )}
 
       {/* Floating CTA */}
-      {activeTab === 'input' && totalAutoclaves > 0 && (
-        <div className="fixed bottom-4 sm:bottom-6 left-2 right-2 sm:left-4 sm:right-4 max-w-lg mx-auto z-30">
+      {activeTab === "input" && totalAutoclaves > 0 && (
+        <div className="fixed right-2 bottom-4 left-2 z-30 mx-auto max-w-lg sm:right-4 sm:bottom-6 sm:left-4">
           <button
-            onClick={() => setActiveTab('result')}
-            className="w-full py-3 sm:py-4 px-3 sm:px-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold shadow-lg shadow-amber-500/25 flex items-center justify-between gap-2 active:scale-[0.98] transition-transform"
+            onClick={() => setActiveTab("result")}
+            className="flex w-full items-center justify-between gap-2 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 px-3 py-3 font-semibold text-white shadow-lg shadow-amber-500/25 transition-transform active:scale-[0.98] sm:rounded-2xl sm:px-6 sm:py-4"
           >
-            <span className="text-sm sm:text-base truncate">Lihat Hasil</span>
-            <span className="bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm shrink-0">
+            <span className="truncate text-sm sm:text-base">Lihat Hasil</span>
+            <span className="shrink-0 rounded-full bg-white/20 px-2 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm">
               {totalAutoclaves}× • {calculation.iterations}
             </span>
           </button>
@@ -372,9 +378,13 @@ function MiniStat({
   highlight?: boolean;
 }) {
   return (
-    <div className="text-center min-w-0">
-      <p className="text-neutral-500 text-[10px] sm:text-xs mb-0.5 truncate">{label}</p>
-      <p className={`font-semibold text-sm sm:text-base truncate ${highlight ? 'text-amber-400' : 'text-white'}`}>
+    <div className="min-w-0 text-center">
+      <p className="mb-0.5 truncate text-[10px] text-neutral-500 sm:text-xs">
+        {label}
+      </p>
+      <p
+        className={`truncate text-sm font-semibold sm:text-base ${highlight ? "text-amber-400" : "text-white"}`}
+      >
         {value}
       </p>
     </div>
@@ -393,18 +403,18 @@ function TabButton({ active, onClick, icon, badge, children }: TabButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-all flex items-center justify-center gap-1 sm:gap-2 ${
+      className={`flex flex-1 items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-medium transition-all sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm ${
         active
-          ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/25'
-          : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+          ? "bg-amber-500 text-white shadow-lg shadow-amber-500/25"
+          : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
       }`}
     >
       <span className="text-sm sm:text-base">{icon}</span>
       <span>{children}</span>
       {badge !== undefined && (
         <span
-          className={`px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs ${
-            active ? 'bg-white/20' : 'bg-amber-500/20 text-amber-400'
+          className={`rounded-full px-1 py-0.5 text-[10px] sm:px-1.5 sm:text-xs ${
+            active ? "bg-white/20" : "bg-amber-500/20 text-amber-400"
           }`}
         >
           {badge}
