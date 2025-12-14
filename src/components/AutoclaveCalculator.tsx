@@ -212,35 +212,35 @@ export function AutoclaveCalculator() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 pb-24">
+    <div className="max-w-lg mx-auto px-2 sm:px-4 pb-24">
       {/* Hero Stats Card */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 p-5 mb-6">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 p-3 sm:p-5 mb-4 sm:mb-6">
+        <div className="absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-neutral-400 text-xs uppercase tracking-wider mb-1">
+          <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
+            <div className="min-w-0">
+              <p className="text-neutral-400 text-[10px] sm:text-xs uppercase tracking-wider mb-0.5 sm:mb-1">
                 Total Nilai
               </p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-xl sm:text-2xl font-bold text-white truncate">
                 {valueCalc.beforeValue.toFixed(1)}{' '}
                 <span className="text-amber-400">WL</span>
               </p>
             </div>
             {totalAutoclaves > 0 && (
               <div
-                className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium shrink-0 ${
                   valueCalc.difference >= 0
                     ? 'bg-emerald-500/20 text-emerald-400'
                     : 'bg-red-500/20 text-red-400'
                 }`}
               >
                 {valueCalc.difference >= 0 ? '+' : ''}
-                {valueCalc.difference.toFixed(2)} WL
+                {valueCalc.difference.toFixed(2)}
               </div>
             )}
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <MiniStat label="Tools" value={totalTools} />
             <MiniStat label="Autoclave" value={`${totalAutoclaves}x`} highlight />
             <MiniStat label="Iterasi" value={calculation.iterations} />
@@ -249,7 +249,7 @@ export function AutoclaveCalculator() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 p-1 bg-neutral-900/80 backdrop-blur-lg rounded-xl mb-4 sticky top-2 z-20">
+      <div className="flex gap-1 sm:gap-2 p-1 bg-neutral-900/80 backdrop-blur-lg rounded-xl mb-3 sm:mb-4 sticky top-2 z-20">
         <TabButton
           active={activeTab === 'input'}
           onClick={() => setActiveTab('input')}
@@ -268,12 +268,12 @@ export function AutoclaveCalculator() {
       </div>
 
       {activeTab === 'input' ? (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {/* Help text */}
-          <div className="flex items-center gap-2 text-xs text-neutral-500 px-1">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-neutral-500 px-1">
             <span>💡</span>
             <span>
-              Tap card untuk expand • {toolsWithQuantity}/13 tools diisi
+              Tap untuk expand • {toolsWithQuantity}/13 diisi
             </span>
           </div>
 
@@ -310,20 +310,20 @@ export function AutoclaveCalculator() {
           {/* Settings Toggle */}
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="w-full py-3 text-neutral-500 text-sm flex items-center justify-center gap-2 hover:text-neutral-300 transition-colors"
+            className="w-full py-2 sm:py-3 text-neutral-500 text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 hover:text-neutral-300 transition-colors"
           >
             <span>⚙️</span>
-            <span>{showSettings ? 'Sembunyikan' : 'Tampilkan'} Pengaturan</span>
+            <span>{showSettings ? 'Sembunyikan' : 'Tampilkan'} Setting</span>
           </button>
 
           {showSettings && (
-            <div className="p-4 rounded-xl bg-neutral-900/50 border border-neutral-800 space-y-3">
-              <p className="text-sm font-medium text-neutral-300">Reset Data</p>
+            <div className="p-3 sm:p-4 rounded-xl bg-neutral-900/50 border border-neutral-800 space-y-2 sm:space-y-3">
+              <p className="text-xs sm:text-sm font-medium text-neutral-300">Reset Data</p>
               <button
                 onClick={handleResetAll}
-                className="w-full py-2.5 px-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors"
+                className="w-full py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs sm:text-sm font-medium hover:bg-red-500/20 transition-colors"
               >
-                🗑️ Reset Semua Data
+                🗑️ Reset Semua
               </button>
             </div>
           )}
@@ -338,14 +338,14 @@ export function AutoclaveCalculator() {
 
       {/* Floating CTA */}
       {activeTab === 'input' && totalAutoclaves > 0 && (
-        <div className="fixed bottom-6 left-4 right-4 max-w-lg mx-auto z-30">
+        <div className="fixed bottom-4 sm:bottom-6 left-2 right-2 sm:left-4 sm:right-4 max-w-lg mx-auto z-30">
           <button
             onClick={() => setActiveTab('result')}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold shadow-lg shadow-amber-500/25 flex items-center justify-between active:scale-[0.98] transition-transform"
+            className="w-full py-3 sm:py-4 px-3 sm:px-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold shadow-lg shadow-amber-500/25 flex items-center justify-between gap-2 active:scale-[0.98] transition-transform"
           >
-            <span>Lihat Hasil Autoclave</span>
-            <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
-              {totalAutoclaves}x • {calculation.iterations} iterasi
+            <span className="text-sm sm:text-base truncate">Lihat Hasil</span>
+            <span className="bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm shrink-0">
+              {totalAutoclaves}× • {calculation.iterations}
             </span>
           </button>
         </div>
@@ -364,9 +364,9 @@ function MiniStat({
   highlight?: boolean;
 }) {
   return (
-    <div className="text-center">
-      <p className="text-neutral-500 text-xs mb-0.5">{label}</p>
-      <p className={`font-semibold ${highlight ? 'text-amber-400' : 'text-white'}`}>
+    <div className="text-center min-w-0">
+      <p className="text-neutral-500 text-[10px] sm:text-xs mb-0.5 truncate">{label}</p>
+      <p className={`font-semibold text-sm sm:text-base truncate ${highlight ? 'text-amber-400' : 'text-white'}`}>
         {value}
       </p>
     </div>
@@ -385,17 +385,17 @@ function TabButton({ active, onClick, icon, badge, children }: TabButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+      className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-all flex items-center justify-center gap-1 sm:gap-2 ${
         active
           ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/25'
           : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
       }`}
     >
-      <span>{icon}</span>
+      <span className="text-sm sm:text-base">{icon}</span>
       <span>{children}</span>
       {badge !== undefined && (
         <span
-          className={`px-1.5 py-0.5 rounded-full text-xs ${
+          className={`px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs ${
             active ? 'bg-white/20' : 'bg-amber-500/20 text-amber-400'
           }`}
         >
