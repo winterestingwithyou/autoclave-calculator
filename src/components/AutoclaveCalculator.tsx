@@ -31,6 +31,7 @@ import {
 } from "../lib/db";
 import { MobileToolCard } from "./MobileToolCard";
 import { ResultsView } from "./ResultsView";
+import { GrowscanImport } from "./GrowscanImport";
 
 interface PriceData {
   value: number;
@@ -179,6 +180,23 @@ export function AutoclaveCalculator() {
     }
   }, []);
 
+  const handleGrowscanImport = useCallback(
+    async (importedQuantities: Map<ToolType, number>) => {
+      // Update state
+      setQuantities(importedQuantities);
+      
+      // Save to IndexedDB
+      for (const [tool, quantity] of importedQuantities) {
+        try {
+          await setToolQuantity(tool, quantity);
+        } catch (e) {
+          console.error(`Failed to save ${tool}:`, e);
+        }
+      }
+    },
+    [],
+  );
+
   const inputs: ToolInput[] = TOOL_NAMES.map((tool) => ({
     tool,
     quantity: quantities.get(tool) || 0,
@@ -283,10 +301,16 @@ export function AutoclaveCalculator() {
 
       {activeTab === "input" ? (
         <div className="space-y-2 sm:space-y-3">
-          {/* Help text */}
-          <div className="flex items-center gap-1.5 px-1 text-[10px] text-neutral-500 sm:gap-2 sm:text-xs">
-            <span>💡</span>
-            <span>Tap untuk expand • {toolsWithQuantity}/13 diisi</span>
+          {/* Growscan Import Button */}
+          <div className="flex items-center justify-between gap-2 px-1">
+            <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 sm:gap-2 sm:text-xs">
+              <span>💡</span>
+              <span>Tap untuk expand • {toolsWithQuantity}/13 diisi</span>
+            </div>
+            <GrowscanImport 
+              onImport={handleGrowscanImport}
+              currentQuantities={quantities}
+            />
           </div>
 
           {/* Tool Cards */}
