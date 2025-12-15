@@ -1,0 +1,8 @@
+# Robots.txt for Growtopia Autoclave Calculator
+# https://autoclave-calculator.vercel.app
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://autoclave-calculator.vercel.app/sitemap.xml
