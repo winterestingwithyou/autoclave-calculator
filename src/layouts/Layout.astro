@@ -19,13 +19,21 @@ const currentPath = Astro.url.pathname;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Favicon - Multiple formats for better compatibility -->
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    
     <meta name="generator" content={Astro.generator} />
 
     <!-- SEO Meta Tags -->
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
+    <meta name="author" content="winterestingwithyou" />
+    <meta name="application-name" content="Growtopia Autoclave Calculator" />
 
     <!-- Google SEO -->
     <meta name="google-site-verification" content="7fPd_w3RG_ieeGi2W_WFohcT33wFCZFDJAefoWYWUus" />
@@ -36,19 +44,43 @@ const currentPath = Astro.url.pathname;
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="Growtopia Autoclave Calculator" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:image" content={`${siteUrl}/og-image.png`} />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${siteUrl}/og-image.png`} />
 
     <!-- Additional SEO -->
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#1f2937" />
+    <meta name="theme-color" content="#f59e0b" />
     <meta
       name="keywords"
-      content="growtopia, autoclave, calculator, surgical tools, world lock, wl, gt"
+      content="growtopia, autoclave, calculator, surgical tools, world lock, wl, gt, growtopia calculator, surgical sponge, surgical scalpel"
     />
+    
+    <!-- Structured Data (JSON-LD) for better Google recognition -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Growtopia Autoclave Calculator",
+      "url": siteUrl,
+      "description": description,
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "winterestingwithyou",
+        "url": "https://github.com/winterestingwithyou"
+      }
+    })} />
   </head>
   <body class="min-h-screen bg-gray-950 text-white">
     <!-- Navigation -->
