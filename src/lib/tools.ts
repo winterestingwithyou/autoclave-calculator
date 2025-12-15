@@ -4,19 +4,19 @@
  */
 
 export const TOOL_NAMES = [
-  "Surgical Sponge",
-  "Surgical Splint",
-  "Surgical Antiseptic",
-  "Surgical Antibiotics",
-  "Surgical Anesthetic",
-  "Surgical Scalpel",
-  "Surgical Stitches",
-  "Surgical Lab Kit",
-  "Surgical Clamp",
-  "Surgical Pins",
-  "Surgical Transfusion",
-  "Surgical Ultrasound",
-  "Surgical Defibrillator",
+  'Surgical Anesthetic',
+  'Surgical Antibiotics',
+  'Surgical Antiseptic',
+  'Surgical Clamp',
+  'Surgical Defibrillator',
+  'Surgical Lab Kit',
+  'Surgical Pins',
+  'Surgical Scalpel',
+  'Surgical Splint',
+  'Surgical Sponge',
+  'Surgical Stitches',
+  'Surgical Transfusion',
+  'Surgical Ultrasound',
 ] as const;
 
 export type ToolType = (typeof TOOL_NAMES)[number];
@@ -44,23 +44,11 @@ export interface ToolMetadata {
  * Colors are inspired by Growtopia's pixel aesthetic
  */
 export const TOOL_METADATA: Record<ToolType, ToolMetadata> = {
-  "Surgical Sponge": {
-    name: "Surgical Sponge",
-    shortName: "Sponge",
-    color: "#FFD700",
-    image: "/images/surgical/tools/sponge.webp",
-  },
-  "Surgical Splint": {
-    name: "Surgical Splint",
-    shortName: "Splint",
-    color: "#8B4513",
-    image: "/images/surgical/tools/splint.webp",
-  },
-  "Surgical Antiseptic": {
-    name: "Surgical Antiseptic",
-    shortName: "Antiseptic",
-    color: "#00CED1",
-    image: "/images/surgical/tools/antiseptic.webp",
+  "Surgical Anesthetic": {
+    name: "Surgical Anesthetic",
+    shortName: "Anesthetic",
+    color: "#9370DB",
+    image: "/images/surgical/tools/anesthetic.webp",
   },
   "Surgical Antibiotics": {
     name: "Surgical Antibiotics",
@@ -68,29 +56,11 @@ export const TOOL_METADATA: Record<ToolType, ToolMetadata> = {
     color: "#FF6347",
     image: "/images/surgical/tools/antibiotics.webp",
   },
-  "Surgical Anesthetic": {
-    name: "Surgical Anesthetic",
-    shortName: "Anesthetic",
-    color: "#9370DB",
-    image: "/images/surgical/tools/anesthetic.webp",
-  },
-  "Surgical Scalpel": {
-    name: "Surgical Scalpel",
-    shortName: "Scalpel",
-    color: "#C0C0C0",
-    image: "/images/surgical/tools/scalpel.webp",
-  },
-  "Surgical Stitches": {
-    name: "Surgical Stitches",
-    shortName: "Stitches",
-    color: "#228B22",
-    image: "/images/surgical/tools/stitches.webp",
-  },
-  "Surgical Lab Kit": {
-    name: "Surgical Lab Kit",
-    shortName: "Lab Kit",
-    color: "#4169E1",
-    image: "/images/surgical/tools/lab-kit.webp",
+  "Surgical Antiseptic": {
+    name: "Surgical Antiseptic",
+    shortName: "Antiseptic",
+    color: "#00CED1",
+    image: "/images/surgical/tools/antiseptic.webp",
   },
   "Surgical Clamp": {
     name: "Surgical Clamp",
@@ -98,11 +68,47 @@ export const TOOL_METADATA: Record<ToolType, ToolMetadata> = {
     color: "#708090",
     image: "/images/surgical/tools/clamp.webp",
   },
+  "Surgical Defibrillator": {
+    name: "Surgical Defibrillator",
+    shortName: "Defib",
+    color: "#FF4500",
+    image: "/images/surgical/tools/defibrillator.webp",
+  },
+  "Surgical Lab Kit": {
+    name: "Surgical Lab Kit",
+    shortName: "Lab Kit",
+    color: "#4169E1",
+    image: "/images/surgical/tools/lab-kit.webp",
+  },
   "Surgical Pins": {
     name: "Surgical Pins",
     shortName: "Pins",
     color: "#B8860B",
     image: "/images/surgical/tools/pins.webp",
+  },  
+  "Surgical Scalpel": {
+    name: "Surgical Scalpel",
+    shortName: "Scalpel",
+    color: "#C0C0C0",
+    image: "/images/surgical/tools/scalpel.webp",
+  },
+  "Surgical Splint": {
+    name: "Surgical Splint",
+    shortName: "Splint",
+    color: "#8B4513",
+    image: "/images/surgical/tools/splint.webp",
+  },
+  "Surgical Sponge": {
+    name: "Surgical Sponge",
+    shortName: "Sponge",
+    color: "#FFD700",
+    image: "/images/surgical/tools/sponge.webp",
+  },
+  "Surgical Stitches": {
+    name: "Surgical Stitches",
+    shortName: "Stitches",
+    color: "#228B22",
+    image: "/images/surgical/tools/stitches.webp",
   },
   "Surgical Transfusion": {
     name: "Surgical Transfusion",
@@ -115,12 +121,6 @@ export const TOOL_METADATA: Record<ToolType, ToolMetadata> = {
     shortName: "Ultrasound",
     color: "#00FA9A",
     image: "/images/surgical/tools/ultrasound.webp",
-  },
-  "Surgical Defibrillator": {
-    name: "Surgical Defibrillator",
-    shortName: "Defib",
-    color: "#FF4500",
-    image: "/images/surgical/tools/defibrillator.webp",
   },
 };
 
