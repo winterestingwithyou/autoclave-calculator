@@ -4,19 +4,19 @@
  */
 
 export const TOOL_NAMES = [
-  'Surgical Anesthetic',
-  'Surgical Antibiotics',
-  'Surgical Antiseptic',
-  'Surgical Clamp',
-  'Surgical Defibrillator',
-  'Surgical Lab Kit',
-  'Surgical Pins',
-  'Surgical Scalpel',
-  'Surgical Splint',
-  'Surgical Sponge',
-  'Surgical Stitches',
-  'Surgical Transfusion',
-  'Surgical Ultrasound',
+  "Surgical Anesthetic",
+  "Surgical Antibiotics",
+  "Surgical Antiseptic",
+  "Surgical Clamp",
+  "Surgical Defibrillator",
+  "Surgical Lab Kit",
+  "Surgical Pins",
+  "Surgical Scalpel",
+  "Surgical Splint",
+  "Surgical Sponge",
+  "Surgical Stitches",
+  "Surgical Transfusion",
+  "Surgical Ultrasound",
 ] as const;
 
 export type ToolType = (typeof TOOL_NAMES)[number];
@@ -85,7 +85,7 @@ export const TOOL_METADATA: Record<ToolType, ToolMetadata> = {
     shortName: "Pins",
     color: "#B8860B",
     image: "/images/surgical/tools/pins.webp",
-  },  
+  },
   "Surgical Scalpel": {
     name: "Surgical Scalpel",
     shortName: "Scalpel",

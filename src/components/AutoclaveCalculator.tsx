@@ -184,7 +184,7 @@ export function AutoclaveCalculator() {
     async (importedQuantities: Map<ToolType, number>) => {
       // Update state
       setQuantities(importedQuantities);
-      
+
       // Save to IndexedDB
       for (const [tool, quantity] of importedQuantities) {
         try {
@@ -307,7 +307,7 @@ export function AutoclaveCalculator() {
               <span>💡</span>
               <span>Tap untuk expand • {toolsWithQuantity}/13 diisi</span>
             </div>
-            <GrowscanImport 
+            <GrowscanImport
               onImport={handleGrowscanImport}
               currentQuantities={quantities}
             />

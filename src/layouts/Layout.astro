@@ -19,13 +19,13 @@ const currentPath = Astro.url.pathname;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <!-- Favicon - Multiple formats for better compatibility -->
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
-    
+
     <meta name="generator" content={Astro.generator} />
 
     <!-- SEO Meta Tags -->
@@ -36,8 +36,11 @@ const currentPath = Astro.url.pathname;
     <meta name="application-name" content="Growtopia Autoclave Calculator" />
 
     <!-- Search Engine Verification -->
-    <meta name="google-site-verification" content="7fPd_w3RG_ieeGi2W_WFohcT33wFCZFDJAefoWYWUus" />
-    
+    <meta
+      name="google-site-verification"
+      content="7fPd_w3RG_ieeGi2W_WFohcT33wFCZFDJAefoWYWUus"
+    />
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
@@ -60,27 +63,30 @@ const currentPath = Astro.url.pathname;
       name="keywords"
       content="growtopia, autoclave, calculator, surgical tools, world lock, wl, gt, growtopia calculator, surgical sponge, surgical scalpel"
     />
-    
+
     <!-- Structured Data (JSON-LD) for better Google recognition -->
-    <script type="application/ld+json" set:html={JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Growtopia Autoclave Calculator",
-      "url": siteUrl,
-      "description": description,
-      "applicationCategory": "UtilityApplication",
-      "operatingSystem": "Any",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "author": {
-        "@type": "Person",
-        "name": "winterestingwithyou",
-        "url": "https://github.com/winterestingwithyou"
-      }
-    })} />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        name: "Growtopia Autoclave Calculator",
+        url: siteUrl,
+        description: description,
+        applicationCategory: "UtilityApplication",
+        operatingSystem: "Any",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+        },
+        author: {
+          "@type": "Person",
+          name: "winterestingwithyou",
+          url: "https://github.com/winterestingwithyou",
+        },
+      })}
+    />
   </head>
   <body class="min-h-screen bg-gray-950 text-white">
     <!-- Navigation -->
