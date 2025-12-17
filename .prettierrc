@@ -7,5 +7,6 @@
         "parser": "astro"
       }
     }
-  ]
+  ],
+  "endOfLine": "auto"
 }
