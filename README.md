@@ -126,7 +126,7 @@ This project is open source under the [GPL-3.0 License](LICENSE).
 **winterestingwithyou**
 
 - GitHub: [@winterestingwithyou](https://github.com/winterestingwithyou)
-- Instagram: [@adamyyy___](https://instagram.com/adamyyy___)
+- Instagram: [@adamyyy__](https://instagram.com/adamyyy__)
 
 ---
 
