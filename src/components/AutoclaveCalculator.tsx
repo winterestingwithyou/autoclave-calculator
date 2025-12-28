@@ -250,7 +250,7 @@ export function AutoclaveCalculator() {
                   Total Nilai
                 </p>
                 <p className="truncate text-xl font-bold text-white sm:text-2xl">
-                  {valueCalc.beforeValue.toFixed(1)}{" "}
+                  {valueCalc.beforeValue.toFixed(1).replace(".", ",")}{" "}
                   <span className="text-amber-400">WL</span>
                 </p>
               </div>
@@ -264,7 +264,7 @@ export function AutoclaveCalculator() {
                 }`}
               >
                 {valueCalc.difference >= 0 ? "+" : ""}
-                {valueCalc.difference.toFixed(2)}
+                {valueCalc.difference.toFixed(2).replace(".", ",")}
               </div>
             )}
           </div>

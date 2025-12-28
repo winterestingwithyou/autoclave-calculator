@@ -42,11 +42,11 @@ export function ResultsView({
       <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <SummaryCard
           label="Nilai Sebelum"
-          value={`${valueCalc.beforeValue.toFixed(1)} WL`}
+          value={`${valueCalc.beforeValue.toFixed(1).replace(".", ",")} WL`}
         />
         <SummaryCard
           label="Nilai Sesudah"
-          value={`${valueCalc.afterValue.toFixed(1)} WL`}
+          value={`${valueCalc.afterValue.toFixed(1).replace(".", ",")} WL`}
           highlight
         />
       </div>
@@ -76,7 +76,7 @@ export function ResultsView({
               }`}
             >
               {valueCalc.difference >= 0 ? "+" : ""}
-              {valueCalc.difference.toFixed(2)} WL
+              {valueCalc.difference.toFixed(2).replace(".", ",")} WL
             </p>
           </div>
           <div
@@ -89,7 +89,7 @@ export function ResultsView({
             }`}
           >
             {valueCalc.profitPercent >= 0 ? "+" : ""}
-            {valueCalc.profitPercent.toFixed(1)}%
+            {valueCalc.profitPercent.toFixed(1).replace(".", ",")}%
           </div>
         </div>
       </div>

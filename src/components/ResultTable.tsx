@@ -13,9 +13,11 @@ import { TOOL_METADATA, type ToolType } from "../lib/tools";
 function formatWL(value: number): string {
   if (value >= 100) {
     const dls = value / 100;
-    return `${dls.toFixed(2)} DL`;
+    // Use comma as decimal separator
+    return `${dls.toFixed(2).replace(".", ",")} DL`;
   }
-  return `${value.toFixed(2)} WL`;
+  // Use comma as decimal separator
+  return `${value.toFixed(2).replace(".", ",")} WL`;
 }
 
 /**
