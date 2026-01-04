@@ -32,6 +32,7 @@ import {
 import { MobileToolCard } from "./MobileToolCard";
 import { ResultsView } from "./ResultsView";
 import { GrowscanImport } from "./GrowscanImport";
+import { BulkPriceUpdate } from "./BulkPriceUpdate";
 
 interface PriceData {
   value: number;
@@ -49,6 +50,7 @@ export function AutoclaveCalculator() {
   const [activeTab, setActiveTab] = useState<"input" | "result">("input");
   const [expandedTool, setExpandedTool] = useState<ToolType | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showBulkPriceUpdate, setShowBulkPriceUpdate] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
@@ -197,6 +199,29 @@ export function AutoclaveCalculator() {
     [],
   );
 
+  const handleBulkPriceUpdate = useCallback(
+    async (tools: ToolType[], priceValue: number, priceType: PriceType) => {
+      // Update state for all selected tools
+      setPrices((prev) => {
+        const next = new Map(prev);
+        tools.forEach((tool) => {
+          next.set(tool, { value: priceValue, type: priceType });
+        });
+        return next;
+      });
+
+      // Save to IndexedDB
+      for (const tool of tools) {
+        try {
+          await setToolPrice(tool, priceValue, priceType);
+        } catch (e) {
+          console.error(`Failed to save price for ${tool}:`, e);
+        }
+      }
+    },
+    [],
+  );
+
   const inputs: ToolInput[] = TOOL_NAMES.map((tool) => ({
     tool,
     quantity: quantities.get(tool) || 0,
@@ -301,16 +326,26 @@ export function AutoclaveCalculator() {
 
       {activeTab === "input" ? (
         <div className="space-y-2 sm:space-y-3">
-          {/* Growscan Import Button */}
+          {/* Action Buttons Row */}
           <div className="flex items-center justify-between gap-2 px-1">
             <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 sm:gap-2 sm:text-xs">
               <span>💡</span>
               <span>Tap untuk expand • {toolsWithQuantity}/13 diisi</span>
             </div>
-            <GrowscanImport
-              onImport={handleGrowscanImport}
-              currentQuantities={quantities}
-            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowBulkPriceUpdate(true)}
+                className="flex items-center gap-1 rounded-lg border border-neutral-800 bg-neutral-900/50 px-2 py-1.5 text-xs font-medium text-neutral-300 transition-colors hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-400 sm:gap-1.5 sm:px-3 sm:py-2"
+                title="Update harga untuk beberapa tools sekaligus"
+              >
+                <span className="text-sm sm:text-base">💰</span>
+                <span className="hidden sm:inline">Bulk Price</span>
+              </button>
+              <GrowscanImport
+                onImport={handleGrowscanImport}
+                currentQuantities={quantities}
+              />
+            </div>
           </div>
 
           {/* Tool Cards */}
@@ -387,6 +422,14 @@ export function AutoclaveCalculator() {
             </span>
           </button>
         </div>
+      )}
+
+      {/* Bulk Price Update Modal */}
+      {showBulkPriceUpdate && (
+        <BulkPriceUpdate
+          onBulkUpdate={handleBulkPriceUpdate}
+          onClose={() => setShowBulkPriceUpdate(false)}
+        />
       )}
     </div>
   );
