@@ -18,7 +18,13 @@ interface GrowscanImportProps {
   currentQuantities: Map<ToolType, number>;
 }
 
-type ScanStatus = "idle" | "selecting" | "scanning" | "results" | "error";
+type ScanStatus =
+  | "idle"
+  | "selecting"
+  | "cropping"
+  | "scanning"
+  | "results"
+  | "error";
 
 export function GrowscanImport({
   onImport,
@@ -29,7 +35,12 @@ export function GrowscanImport({
   const [detectedTools, setDetectedTools] = useState<DetectedTool[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   const parseGrowscanText = (text: string): DetectedTool[] => {
     const results: DetectedTool[] = [];
@@ -82,43 +93,9 @@ export function GrowscanImport({
     // Create preview URL
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-    setStatus("scanning");
-    setProgress(0);
+    setUploadedFile(file);
+    setStatus("cropping");
     setErrorMessage("");
-
-    try {
-      const worker = await createWorker("eng", 1, {
-        logger: (m) => {
-          if (m.status === "recognizing text") {
-            setProgress(Math.round(m.progress * 100));
-          }
-        },
-      });
-
-      const {
-        data: { text },
-      } = await worker.recognize(file);
-      await worker.terminate();
-
-      // Parse the OCR text
-      const detected = parseGrowscanText(text);
-
-      if (detected.length === 0) {
-        setStatus("error");
-        setErrorMessage(
-          "Tidak ada Surgical Tools yang terdeteksi dalam gambar. Pastikan gambar adalah hasil Growscan yang menampilkan daftar Surgical Tools.",
-        );
-      } else {
-        setDetectedTools(detected);
-        setStatus("results");
-      }
-    } catch (error) {
-      console.error("OCR Error:", error);
-      setStatus("error");
-      setErrorMessage(
-        "Gagal memproses gambar. Silakan coba lagi dengan gambar yang berbeda.",
-      );
-    }
 
     // Reset file input
     if (fileInputRef.current) {
@@ -142,9 +119,165 @@ export function GrowscanImport({
     setDetectedTools([]);
     setErrorMessage("");
     setProgress(0);
+    setUploadedFile(null);
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!imageRef.current) return;
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setIsDragging(true);
+    setDragStart({ x, y });
+    setCropArea({ x, y, width: 0, height: 0 });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !imageRef.current) return;
+    const rect = imageRef.current.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+
+    const width = Math.abs(currentX - dragStart.x);
+    const height = Math.abs(currentY - dragStart.y);
+    const x = Math.min(dragStart.x, currentX);
+    const y = Math.min(dragStart.y, currentY);
+
+    setCropArea({ x, y, width, height });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Touch event handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!imageRef.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    setIsDragging(true);
+    setDragStart({ x, y });
+    setCropArea({ x, y, width: 0, height: 0 });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !imageRef.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = imageRef.current.getBoundingClientRect();
+    const currentX = touch.clientX - rect.left;
+    const currentY = touch.clientY - rect.top;
+
+    const width = Math.abs(currentX - dragStart.x);
+    const height = Math.abs(currentY - dragStart.y);
+    const x = Math.min(dragStart.x, currentX);
+    const y = Math.min(dragStart.y, currentY);
+
+    setCropArea({ x, y, width, height });
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleImageLoad = () => {
+    if (!imageRef.current) return;
+    const img = imageRef.current;
+    // Initialize crop area to full image with some padding
+    const padding = 20;
+    setCropArea({
+      x: padding,
+      y: padding,
+      width: img.clientWidth - padding * 2,
+      height: img.clientHeight - padding * 2,
+    });
+  };
+
+  const handleCropApply = async () => {
+    if (!uploadedFile || !imageRef.current) return;
+
+    setStatus("scanning");
+    setProgress(0);
+
+    try {
+      // Create canvas to crop the image
+      const img = imageRef.current;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas context not available");
+
+      // Calculate scale factor (displayed size vs actual size)
+      const scaleX = img.naturalWidth / img.clientWidth;
+      const scaleY = img.naturalHeight / img.clientHeight;
+
+      // Set canvas size to cropped area
+      canvas.width = cropArea.width * scaleX;
+      canvas.height = cropArea.height * scaleY;
+
+      // Draw cropped portion
+      ctx.drawImage(
+        img,
+        cropArea.x * scaleX,
+        cropArea.y * scaleY,
+        cropArea.width * scaleX,
+        cropArea.height * scaleY,
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      );
+
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b!), "image/png");
+      });
+
+      // Create File from blob
+      const croppedFile = new File([blob], "cropped.png", {
+        type: "image/png",
+      });
+
+      // Perform OCR on cropped image
+      const worker = await createWorker("eng", 1, {
+        logger: (m) => {
+          if (m.status === "recognizing text") {
+            setProgress(Math.round(m.progress * 100));
+          }
+        },
+      });
+
+      const {
+        data: { text },
+      } = await worker.recognize(croppedFile);
+      await worker.terminate();
+
+      // Parse the OCR text
+      const detected = parseGrowscanText(text);
+
+      if (detected.length === 0) {
+        setStatus("error");
+        setErrorMessage(
+          "Tidak ada Surgical Tools yang terdeteksi dalam gambar. Pastikan gambar adalah hasil Growscan yang menampilkan daftar Surgical Tools.",
+        );
+      } else {
+        setDetectedTools(detected);
+        setStatus("results");
+      }
+    } catch (error) {
+      console.error("OCR Error:", error);
+      setStatus("error");
+      setErrorMessage(
+        "Gagal memproses gambar. Silakan coba lagi dengan gambar yang berbeda.",
+      );
     }
   };
 
@@ -194,7 +327,136 @@ export function GrowscanImport({
       {/* Modal Overlay */}
       {status !== "idle" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 shadow-2xl">
+          <div className="w-full max-w-4xl overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 shadow-2xl">
+            {/* Cropping State */}
+            {status === "cropping" && (
+              <div className="flex flex-col">
+                {/* Header */}
+                <div className="border-b border-neutral-800 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10">
+                      <svg
+                        className="h-5 w-5 text-cyan-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">
+                        Crop Gambar
+                      </h3>
+                      <p className="text-xs text-neutral-500">
+                        Pilih area tools yang ingin di-scan
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Image Preview with Crop Tool */}
+                <div className="relative max-h-[60vh] overflow-auto bg-neutral-950 p-4">
+                  <div
+                    className="relative inline-block cursor-crosshair select-none"
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                  >
+                    {previewUrl && (
+                      <img
+                        ref={imageRef}
+                        src={previewUrl}
+                        alt="Preview"
+                        onLoad={handleImageLoad}
+                        className="max-h-[50vh] max-w-full"
+                        draggable={false}
+                      />
+                    )}
+                    {/* Crop overlay */}
+                    {cropArea.width > 0 && cropArea.height > 0 && (
+                      <>
+                        {/* Dark overlay outside crop area */}
+                        <div className="pointer-events-none absolute inset-0">
+                          <svg className="h-full w-full">
+                            <defs>
+                              <mask id="crop-mask">
+                                <rect width="100%" height="100%" fill="white" />
+                                <rect
+                                  x={cropArea.x}
+                                  y={cropArea.y}
+                                  width={cropArea.width}
+                                  height={cropArea.height}
+                                  fill="black"
+                                />
+                              </mask>
+                            </defs>
+                            <rect
+                              width="100%"
+                              height="100%"
+                              fill="rgba(0,0,0,0.5)"
+                              mask="url(#crop-mask)"
+                            />
+                          </svg>
+                        </div>
+                        {/* Crop border */}
+                        <div
+                          className="pointer-events-none absolute border-2 border-cyan-400 shadow-lg"
+                          style={{
+                            left: `${cropArea.x}px`,
+                            top: `${cropArea.y}px`,
+                            width: `${cropArea.width}px`,
+                            height: `${cropArea.height}px`,
+                          }}
+                        >
+                          {/* Corner indicators */}
+                          <div className="absolute -top-1 -left-1 h-3 w-3 rounded-full bg-cyan-400" />
+                          <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-cyan-400" />
+                          <div className="absolute -bottom-1 -left-1 h-3 w-3 rounded-full bg-cyan-400" />
+                          <div className="absolute -right-1 -bottom-1 h-3 w-3 rounded-full bg-cyan-400" />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="border-t border-neutral-800 bg-neutral-900/50 p-4">
+                  <div className="mb-3 rounded-lg bg-cyan-500/10 p-3">
+                    <p className="text-xs text-cyan-400">
+                      💡 Tips: Geser jari atau drag mouse untuk membuat area
+                      seleksi. Pilih hanya bagian yang menampilkan daftar
+                      Surgical Tools untuk hasil scan yang lebih akurat.
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleClose}
+                      className="flex-1 rounded-xl bg-neutral-800 py-2.5 font-medium text-neutral-300 transition-colors hover:bg-neutral-700"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      onClick={handleCropApply}
+                      disabled={cropArea.width === 0 || cropArea.height === 0}
+                      className="flex-1 rounded-xl bg-linear-to-r from-cyan-500 to-blue-500 py-2.5 font-medium text-white transition-all hover:from-cyan-400 hover:to-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Scan Area Ini
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Scanning State */}
             {status === "scanning" && (
               <div className="p-6 text-center">
