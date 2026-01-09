@@ -181,8 +181,8 @@ export function BulkPriceUpdate({
                 onChange={(e) => setPriceType(e.target.value as PriceType)}
                 className="cursor-pointer rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-2 text-xs text-white focus:border-amber-500 focus:outline-none sm:px-4 sm:py-2.5 sm:text-sm"
               >
-                <option value="wl-each">WL each</option>
-                <option value="items-per-wl">Items per WL</option>
+                <option value="items-per-wl">/WL</option>
+                <option value="wl-each">WL</option>
               </select>
             </div>
             <p className="mt-2 text-[10px] text-neutral-500 sm:text-xs">
